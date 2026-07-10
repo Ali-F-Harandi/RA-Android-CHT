@@ -1,0 +1,646 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RA CHT Editor</title>
+<style>
+:root {
+  --green: #00AA00;
+  --green-dark: #008800;
+  --green-light: #00FF00;
+  --bg: #1a1a1a;
+  --bg-card: #2a2a2a;
+  --bg-input: #333333;
+  --text: #ffffff;
+  --text-dim: #888888;
+  --red: #ff4444;
+  --border: #444444;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  padding: 12px;
+}
+h1 { color: var(--green-light); font-size: 1.4em; margin-bottom: 8px; }
+.subtitle { color: var(--text-dim); font-size: 0.8em; margin-bottom: 16px; }
+
+/* Top action bar */
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+.btn {
+  background: var(--bg-input);
+  color: var(--text);
+  border: 1px solid var(--border);
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.85em;
+  transition: all 0.2s;
+}
+.btn:hover { background: var(--green-dark); border-color: var(--green); }
+.btn-green { background: var(--green-dark); border-color: var(--green); }
+.btn-green:hover { background: var(--green); }
+.btn-red { color: var(--red); }
+
+/* Cheat list */
+.cheat-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.cheat-item {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 12px;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+.cheat-info { flex: 1; min-width: 0; }
+.cheat-desc {
+  font-weight: bold;
+  font-size: 0.95em;
+  margin-bottom: 4px;
+  word-break: break-word;
+}
+.cheat-summary {
+  font-size: 0.8em;
+  color: var(--text-dim);
+  word-break: break-word;
+}
+.cheat-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 4px;
+}
+.badge {
+  font-size: 0.7em;
+  padding: 2px 8px;
+  border-radius: 10px;
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+}
+.badge-enabled { background: var(--green-dark); color: var(--green-light); border-color: var(--green); }
+.cheat-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex-shrink: 0;
+}
+.cheat-actions .btn { padding: 4px 10px; font-size: 0.75em; }
+
+/* Toggle switch */
+.toggle {
+  position: relative;
+  width: 40px;
+  height: 22px;
+}
+.toggle input { opacity: 0; width: 0; height: 0; }
+.toggle-slider {
+  position: absolute;
+  inset: 0;
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: 22px;
+  cursor: pointer;
+  transition: 0.3s;
+}
+.toggle-slider:before {
+  content: "";
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  left: 2px;
+  top: 2px;
+  background: var(--text-dim);
+  border-radius: 50%;
+  transition: 0.3s;
+}
+.toggle input:checked + .toggle-slider { background: var(--green-dark); border-color: var(--green); }
+.toggle input:checked + .toggle-slider:before { transform: translateX(18px); background: var(--green-light); }
+
+/* Modal */
+.modal-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.7);
+  z-index: 100;
+  padding: 12px;
+  overflow-y: auto;
+}
+.modal-overlay.active { display: flex; justify-content: center; align-items: flex-start; }
+.modal {
+  background: var(--bg-card);
+  border: 1px solid var(--green);
+  border-radius: 12px;
+  padding: 20px;
+  width: 100%;
+  max-width: 600px;
+  margin-top: 20px;
+}
+.modal h2 { color: var(--green-light); margin-bottom: 16px; }
+.form-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+.form-field {
+  flex: 1;
+  min-width: 120px;
+  display: flex;
+  flex-direction: column;
+}
+.form-field label {
+  font-size: 0.75em;
+  color: var(--text-dim);
+  margin-bottom: 4px;
+}
+.form-field input, .form-field select {
+  background: var(--bg-input);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 8px;
+  font-size: 0.85em;
+}
+.form-field input:focus, .form-field select:focus {
+  outline: none;
+  border-color: var(--green);
+}
+.modal-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 16px;
+  justify-content: flex-end;
+}
+.empty-state {
+  text-align: center;
+  padding: 40px 20px;
+  color: var(--text-dim);
+}
+
+/* Responsive */
+@media (min-width: 768px) {
+  body { padding: 24px; max-width: 900px; margin: 0 auto; }
+  h1 { font-size: 1.8em; }
+}
+</style>
+</head>
+<body>
+
+<h1>RA CHT Editor</h1>
+<div class="subtitle">RetroArch Cheat File Editor — create, edit, import & export .cht files &nbsp;|&nbsp; <a href="guide.html" style="color:var(--green-light);text-decoration:none;">📖 .cht Guide</a> &nbsp;|&nbsp; <a href="cfg-guide.html" style="color:var(--green-light);text-decoration:none;">📖 .cfg Guide (Quick Cheat)</a></div>
+
+<div class="actions">
+  <button class="btn btn-green" onclick="openAddModal()">+ Add Cheat</button>
+  <button class="btn" onclick="importFile()">Import .cht</button>
+  <button class="btn" onclick="exportFile()">Export .cht</button>
+  <button class="btn" onclick="enableAll()">Enable All</button>
+  <button class="btn" onclick="disableAll()">Disable All</button>
+  <button class="btn btn-red" onclick="clearAll()">Clear All</button>
+</div>
+
+<div id="cheatList" class="cheat-list"></div>
+<div id="emptyState" class="empty-state">
+  No cheats yet. Click "Add Cheat" to create one, or "Import .cht" to load an existing file.
+</div>
+
+<input type="file" id="fileInput" accept=".cht,.txt" style="display:none">
+
+<!-- Edit Modal -->
+<div class="modal-overlay" id="editModal">
+  <div class="modal">
+    <h2 id="modalTitle">Add Cheat</h2>
+
+    <div class="form-row">
+      <div class="form-field" style="min-width: 100%;">
+        <label>Description</label>
+        <input type="text" id="f_desc" placeholder="e.g. Infinite Health">
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-field">
+        <label>Handler</label>
+        <select id="f_handler" onchange="toggleRetroFields()">
+          <option value="1">RETRO (memory write)</option>
+          <option value="0">EMU (emulator code)</option>
+        </select>
+      </div>
+      <div class="form-field">
+        <label>Cheat Type</label>
+        <select id="f_type">
+          <option value="1">Set Value</option>
+          <option value="2">Increase</option>
+          <option value="3">Decrease</option>
+          <option value="4">If Equal (=)</option>
+          <option value="5">If Not Equal (!=)</option>
+          <option value="6">If Less Than (<)</option>
+          <option value="7">If Greater Than (>)</option>
+        </select>
+      </div>
+      <div class="form-field">
+        <label>Memory Size</label>
+        <select id="f_size">
+          <option value="0">1-bit</option>
+          <option value="1">2-bit</option>
+          <option value="2">4-bit</option>
+          <option value="3" selected>8-bit</option>
+          <option value="4">16-bit</option>
+          <option value="5">32-bit</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="form-row" id="emuFields" style="display:none">
+      <div class="form-field" style="min-width: 100%;">
+        <label>Emulator Code (GameShark, Game Genie, etc.)</label>
+        <input type="text" id="f_code" placeholder="e.g. ABBA-ABBA">
+      </div>
+    </div>
+
+    <div class="form-row" id="retroFields">
+      <div class="form-field">
+        <label>Address (hex)</label>
+        <input type="text" id="f_addr" placeholder="e.g. B832" style="text-transform:uppercase">
+      </div>
+      <div class="form-field">
+        <label>Value (hex)</label>
+        <input type="text" id="f_val" placeholder="e.g. 63" style="text-transform:uppercase">
+      </div>
+      <div class="form-field">
+        <label>Bit Position (0-7)</label>
+        <input type="number" id="f_bitpos" value="0" min="0" max="7">
+      </div>
+    </div>
+
+    <div class="form-row" id="retroFields2">
+      <div class="form-field">
+        <label>Repeat Count</label>
+        <input type="number" id="f_repeat_count" value="1" min="1">
+      </div>
+      <div class="form-field">
+        <label>Repeat Add to Value</label>
+        <input type="number" id="f_repeat_val" value="0">
+      </div>
+      <div class="form-field">
+        <label>Repeat Add to Address</label>
+        <input type="number" id="f_repeat_addr" value="1">
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-field">
+        <label><input type="checkbox" id="f_endian"> Big Endian (e.g. Genesis/68000)</label>
+      </div>
+      <div class="form-field">
+        <label><input type="checkbox" id="f_enabled" checked> Enabled (freeze)</label>
+      </div>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-green" onclick="saveCheat()">Save</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ============================================================
+// Cheat data model
+// ============================================================
+const HANDLER_EMU = 0, HANDLER_RETRO = 1;
+const TYPE_NAMES = ['Disabled','Set Value','Increase','Decrease','If Equal','If Not Equal','If Less Than','If Greater Than'];
+const SIZE_NAMES = ['1-bit','2-bit','4-bit','8-bit','16-bit','32-bit'];
+
+let cheats = [];
+let editingIndex = -1;
+
+// ============================================================
+// Render
+// ============================================================
+function render() {
+  const list = document.getElementById('cheatList');
+  const empty = document.getElementById('emptyState');
+  list.innerHTML = '';
+
+  if (cheats.length === 0) {
+    empty.style.display = 'block';
+    return;
+  }
+  empty.style.display = 'none';
+
+  cheats.forEach((c, i) => {
+    const item = document.createElement('div');
+    item.className = 'cheat-item';
+
+    // Info
+    const info = document.createElement('div');
+    info.className = 'cheat-info';
+
+    const desc = document.createElement('div');
+    desc.className = 'cheat-desc';
+    desc.textContent = c.desc || '(no description)';
+    info.appendChild(desc);
+
+    const summary = document.createElement('div');
+    summary.className = 'cheat-summary';
+    if (c.handler === HANDLER_EMU) {
+      summary.textContent = `EMU Code: ${c.code || '(empty)'}`;
+    } else {
+      summary.textContent = `0x${c.address.toString(16).toUpperCase()} = 0x${c.value.toString(16).toUpperCase()} (${SIZE_NAMES[c.memorySearchSize]})`;
+    }
+    info.appendChild(summary);
+
+    // Badges
+    const badges = document.createElement('div');
+    badges.className = 'cheat-badges';
+    const typeBadge = document.createElement('span');
+    typeBadge.className = 'badge';
+    typeBadge.textContent = TYPE_NAMES[c.cheatType];
+    badges.appendChild(typeBadge);
+
+    if (c.handler === HANDLER_EMU) {
+      const hBadge = document.createElement('span');
+      hBadge.className = 'badge';
+      hBadge.textContent = 'EMU';
+      badges.appendChild(hBadge);
+    }
+    if (c.bigEndian) {
+      const bBadge = document.createElement('span');
+      bBadge.className = 'badge';
+      bBadge.textContent = 'BigEndian';
+      badges.appendChild(bBadge);
+    }
+    info.appendChild(badges);
+
+    item.appendChild(info);
+
+    // Actions
+    const actions = document.createElement('div');
+    actions.className = 'cheat-actions';
+
+    // Toggle
+    const toggle = document.createElement('label');
+    toggle.className = 'toggle';
+    const cb = document.createElement('input');
+    cb.type = 'checkbox';
+    cb.checked = c.enabled;
+    cb.onchange = () => { c.enabled = cb.checked; render(); };
+    const slider = document.createElement('span');
+    slider.className = 'toggle-slider';
+    toggle.appendChild(cb);
+    toggle.appendChild(slider);
+    actions.appendChild(toggle);
+
+    // Edit button
+    const editBtn = document.createElement('button');
+    editBtn.className = 'btn';
+    editBtn.textContent = 'Edit';
+    editBtn.onclick = () => openEditModal(i);
+    actions.appendChild(editBtn);
+
+    // Delete button
+    const delBtn = document.createElement('button');
+    delBtn.className = 'btn btn-red';
+    delBtn.textContent = 'Delete';
+    delBtn.onclick = () => { cheats.splice(i, 1); render(); };
+    actions.appendChild(delBtn);
+
+    item.appendChild(actions);
+    list.appendChild(item);
+  });
+}
+
+// ============================================================
+// Modal
+// ============================================================
+function openAddModal() {
+  editingIndex = -1;
+  document.getElementById('modalTitle').textContent = 'Add Cheat';
+  document.getElementById('f_desc').value = '';
+  document.getElementById('f_handler').value = '1';
+  document.getElementById('f_type').value = '1';
+  document.getElementById('f_size').value = '3';
+  document.getElementById('f_code').value = '';
+  document.getElementById('f_addr').value = '';
+  document.getElementById('f_val').value = '';
+  document.getElementById('f_bitpos').value = '0';
+  document.getElementById('f_repeat_count').value = '1';
+  document.getElementById('f_repeat_val').value = '0';
+  document.getElementById('f_repeat_addr').value = '1';
+  document.getElementById('f_endian').checked = false;
+  document.getElementById('f_enabled').checked = true;
+  toggleRetroFields();
+  document.getElementById('editModal').classList.add('active');
+}
+
+function openEditModal(i) {
+  editingIndex = i;
+  const c = cheats[i];
+  document.getElementById('modalTitle').textContent = 'Edit Cheat';
+  document.getElementById('f_desc').value = c.desc;
+  document.getElementById('f_handler').value = c.handler;
+  document.getElementById('f_type').value = c.cheatType;
+  document.getElementById('f_size').value = c.memorySearchSize;
+  document.getElementById('f_code').value = c.code;
+  document.getElementById('f_addr').value = c.address.toString(16).toUpperCase();
+  document.getElementById('f_val').value = c.value.toString(16).toUpperCase();
+  document.getElementById('f_bitpos').value = c.addressBitPosition;
+  document.getElementById('f_repeat_count').value = c.repeatCount;
+  document.getElementById('f_repeat_val').value = c.repeatAddToValue;
+  document.getElementById('f_repeat_addr').value = c.repeatAddToAddress;
+  document.getElementById('f_endian').checked = c.bigEndian;
+  document.getElementById('f_enabled').checked = c.enabled;
+  toggleRetroFields();
+  document.getElementById('editModal').classList.add('active');
+}
+
+function closeModal() {
+  document.getElementById('editModal').classList.remove('active');
+}
+
+function toggleRetroFields() {
+  const isEmu = document.getElementById('f_handler').value === '0';
+  document.getElementById('emuFields').style.display = isEmu ? 'flex' : 'none';
+  document.getElementById('retroFields').style.display = isEmu ? 'none' : 'flex';
+  document.getElementById('retroFields2').style.display = isEmu ? 'none' : 'flex';
+}
+
+function saveCheat() {
+  const c = {
+    desc: document.getElementById('f_desc').value.trim(),
+    handler: parseInt(document.getElementById('f_handler').value),
+    cheatType: parseInt(document.getElementById('f_type').value),
+    memorySearchSize: parseInt(document.getElementById('f_size').value),
+    code: document.getElementById('f_code').value.trim(),
+    address: parseInt(document.getElementById('f_addr').value || '0', 16),
+    value: parseInt(document.getElementById('f_val').value || '0', 16),
+    addressBitPosition: parseInt(document.getElementById('f_bitpos').value) || 0,
+    repeatCount: parseInt(document.getElementById('f_repeat_count').value) || 1,
+    repeatAddToValue: parseInt(document.getElementById('f_repeat_val').value) || 0,
+    repeatAddToAddress: parseInt(document.getElementById('f_repeat_addr').value) || 1,
+    bigEndian: document.getElementById('f_endian').checked,
+    enabled: document.getElementById('f_enabled').checked
+  };
+
+  if (editingIndex >= 0) {
+    cheats[editingIndex] = c;
+  } else {
+    cheats.push(c);
+  }
+  closeModal();
+  render();
+}
+
+// ============================================================
+// Bulk actions
+// ============================================================
+function enableAll() { cheats.forEach(c => c.enabled = true); render(); }
+function disableAll() { cheats.forEach(c => c.enabled = false); render(); }
+function clearAll() {
+  if (confirm('Delete all cheats?')) { cheats = []; render(); }
+}
+
+// ============================================================
+// Import / Export (.cht format)
+// ============================================================
+function importFile() {
+  document.getElementById('fileInput').click();
+}
+
+document.getElementById('fileInput').addEventListener('change', function(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(ev) {
+    try {
+      const text = ev.target.result;
+      const imported = parseCht(text);
+      cheats = cheats.concat(imported);
+      render();
+      alert(`Imported ${imported.length} cheats from ${file.name}`);
+    } catch (err) {
+      alert('Import error: ' + err.message);
+    }
+  };
+  reader.readAsText(file);
+  e.target.value = '';
+});
+
+function parseCht(text) {
+  const lines = text.split('\n');
+  const rawCheats = {};
+  let cheatCount = 0;
+
+  for (let line of lines) {
+    line = line.trim();
+    if (!line || line.startsWith('#') || line.startsWith(';')) continue;
+    const eq = line.indexOf('=');
+    if (eq < 0) continue;
+    let key = line.substring(0, eq).trim();
+    let val = line.substring(eq + 1).trim();
+    if (val.startsWith('"') && val.endsWith('"')) val = val.slice(1, -1);
+
+    if (key === 'cheats') {
+      cheatCount = parseInt(val) || 0;
+    } else {
+      const m = key.match(/^cheat(\d+)_(.+)$/);
+      if (m) {
+        const idx = parseInt(m[1]);
+        const field = m[2];
+        if (!rawCheats[idx]) rawCheats[idx] = {};
+        rawCheats[idx][field] = val;
+      }
+    }
+  }
+
+  if (cheatCount === 0 && Object.keys(rawCheats).length > 0) {
+    cheatCount = Math.max(...Object.keys(rawCheats).map(Number)) + 1;
+  }
+
+  const result = [];
+  for (let i = 0; i < cheatCount; i++) {
+    const f = rawCheats[i] || {};
+    result.push({
+      desc: f.desc || '',
+      code: f.code || '',
+      enabled: f.enable === 'true' || f.enable === '1',
+      bigEndian: f.big_endian === 'true' || f.big_endian === '1',
+      handler: parseInt(f.handler) || 1,
+      memorySearchSize: parseInt(f.memory_search_size) || 3,
+      cheatType: parseInt(f.cheat_type) || 1,
+      value: parseInt(f.value) || 0,
+      address: parseInt(f.address) || 0,
+      addressBitPosition: parseInt(f.address_bit_position) || 0,
+      repeatCount: parseInt(f.repeat_count) || 1,
+      repeatAddToValue: parseInt(f.repeat_add_to_value) || 0,
+      repeatAddToAddress: parseInt(f.repeat_add_to_address) || 1
+    });
+  }
+  return result;
+}
+
+function exportFile() {
+  if (cheats.length === 0) {
+    alert('No cheats to export');
+    return;
+  }
+
+  let text = `# RetroArch Cheat File\n# Generated by RA CHT Editor\n# https://kesafatkari.github.io/RA-Android-CHT/\n\ncheats = ${cheats.length}\n\n`;
+
+  cheats.forEach((c, i) => {
+    const p = `cheat${i}_`;
+    text += `${p}desc = "${c.desc}"\n`;
+    text += `${p}code = "${c.code}"\n`;
+    text += `${p}enable = ${c.enabled ? 'true' : 'false'}\n`;
+    text += `${p}big_endian = ${c.bigEndian ? 'true' : 'false'}\n`;
+    text += `${p}handler = ${c.handler}\n`;
+    text += `${p}memory_search_size = ${c.memorySearchSize}\n`;
+    text += `${p}cheat_type = ${c.cheatType}\n`;
+    text += `${p}value = ${c.value}\n`;
+    text += `${p}address = ${c.address}\n`;
+    text += `${p}address_bit_position = ${c.addressBitPosition}\n`;
+    text += `${p}repeat_count = ${c.repeatCount}\n`;
+    text += `${p}repeat_add_to_value = ${c.repeatAddToValue}\n`;
+    text += `${p}repeat_add_to_address = ${c.repeatAddToAddress}\n`;
+    text += `${p}rumble_type = 0\n`;
+    text += `${p}rumble_value = 0\n`;
+    text += `${p}rumble_port = 0\n`;
+    text += `${p}rumble_primary_strength = 0\n`;
+    text += `${p}rumble_primary_duration = 0\n`;
+    text += `${p}rumble_secondary_strength = 0\n`;
+    text += `${p}rumble_secondary_duration = 0\n\n`;
+  });
+
+  const blob = new Blob([text], { type: 'text/plain' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'cheats.cht';
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+// Close modal on overlay click
+document.getElementById('editModal').addEventListener('click', function(e) {
+  if (e.target === this) closeModal();
+});
+
+// Init
+render();
+</script>
+</body>
+</html>

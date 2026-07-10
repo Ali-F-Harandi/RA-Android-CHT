@@ -1,0 +1,851 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RA-BP Quick Cheat — .cfg Guide</title>
+<style>
+:root {
+  --green: #00AA00;
+  --green-dark: #008800;
+  --green-light: #00FF00;
+  --bg: #1a1a1a;
+  --bg-card: #2a2a2a;
+  --bg-input: #333333;
+  --text: #ffffff;
+  --text-dim: #888888;
+  --border: #444444;
+  --yellow: #FFD700;
+  --red: #ff4444;
+  --blue: #4DA6FF;
+  --purple: #BB86FC;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.6;
+  padding: 12px;
+  max-width: 900px;
+  margin: 0 auto;
+}
+h1 { color: var(--green-light); font-size: 1.6em; margin-bottom: 4px; }
+h2 { color: var(--yellow); font-size: 1.3em; margin-top: 32px; margin-bottom: 12px; border-bottom: 1px solid var(--border); padding-bottom: 6px; }
+h3 { color: var(--blue); font-size: 1.1em; margin-top: 20px; margin-bottom: 8px; }
+h4 { color: var(--text); font-size: 1.0em; margin-top: 16px; margin-bottom: 6px; }
+p { margin-bottom: 10px; }
+a { color: var(--blue); }
+a:hover { text-decoration: underline; }
+ul, ol { margin-bottom: 12px; padding-left: 24px; }
+li { margin-bottom: 6px; }
+code {
+  background: var(--bg-input);
+  color: var(--green-light);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-family: 'Courier New', monospace;
+  font-size: 0.9em;
+}
+pre {
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 14px;
+  overflow-x: auto;
+  margin-bottom: 14px;
+}
+pre code {
+  background: none;
+  padding: 0;
+  color: var(--text);
+  font-size: 0.85em;
+  line-height: 1.5;
+}
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 16px;
+  font-size: 0.85em;
+}
+th {
+  background: var(--bg-input);
+  color: var(--green-light);
+  padding: 8px 12px;
+  text-align: left;
+  border: 1px solid var(--border);
+}
+td {
+  padding: 6px 12px;
+  border: 1px solid var(--border);
+  vertical-align: top;
+}
+tr:nth-child(even) td { background: rgba(255,255,255,0.02); }
+.note {
+  background: rgba(0,170,0,0.1);
+  border-left: 3px solid var(--green);
+  padding: 10px 14px;
+  margin-bottom: 14px;
+  border-radius: 0 6px 6px 0;
+}
+.note-yellow {
+  background: rgba(255,215,0,0.1);
+  border-left: 3px solid var(--yellow);
+  padding: 10px 14px;
+  margin-bottom: 14px;
+  border-radius: 0 6px 6px 0;
+}
+.note-red {
+  background: rgba(255,68,68,0.1);
+  border-left: 3px solid var(--red);
+  padding: 10px 14px;
+  margin-bottom: 14px;
+  border-radius: 0 6px 6px 0;
+}
+.note-purple {
+  background: rgba(187,134,252,0.1);
+  border-left: 3px solid var(--purple);
+  padding: 10px 14px;
+  margin-bottom: 14px;
+  border-radius: 0 6px 6px 0;
+}
+.btn {
+  display: inline-block;
+  background: var(--green-dark);
+  color: var(--text);
+  border: 1px solid var(--green);
+  padding: 8px 20px;
+  border-radius: 6px;
+  text-decoration: none;
+  font-size: 0.9em;
+  margin: 8px 0;
+}
+.btn:hover { background: var(--green); }
+.subtitle { color: var(--text-dim); font-size: 0.85em; margin-bottom: 20px; }
+.toc {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 16px 20px;
+  margin-bottom: 24px;
+}
+.toc-title { color: var(--yellow); font-weight: bold; margin-bottom: 8px; }
+.toc ul { list-style: none; padding-left: 0; }
+.toc li { margin-bottom: 4px; }
+.toc a { color: var(--blue); text-decoration: none; }
+.toc a:hover { text-decoration: underline; }
+.field-num {
+  display: inline-block;
+  background: var(--bg-input);
+  color: var(--yellow);
+  width: 22px;
+  height: 22px;
+  line-height: 22px;
+  text-align: center;
+  border-radius: 4px;
+  font-size: 0.75em;
+  font-weight: bold;
+  margin-right: 4px;
+}
+</style>
+</head>
+<body>
+
+<h1>RA-BP Quick Cheat — .cfg File Guide</h1>
+<div class="subtitle">Complete guide to understanding, creating, and editing <code>.cfg</code> files for the RA-BP Quick Cheat system</div>
+
+<a href="index.html" class="btn">&larr; Back to Editor</a>
+&nbsp;
+<a href="guide.html" class="btn">.cht Guide (RetroArch)</a>
+
+<div class="toc">
+  <div class="toc-title">Table of Contents</div>
+  <ul>
+    <li><a href="#what-is-cfg">1. What is a .cfg file?</a></li>
+    <li><a href="#location">2. File Location &amp; Naming</a></li>
+    <li><a href="#structure">3. File Structure Overview</a></li>
+    <li><a href="#settings">4. The [settings] Section (Optional)</a></li>
+    <li><a href="#cheats">5. The [cheats] Section</a></li>
+    <li><a href="#fields">6. Field Reference (All 17 Fields)</a></li>
+    <li><a href="#cheat-types">7. Cheat Types</a></li>
+    <li><a href="#memory-sizes">8. Memory Sizes</a></li>
+    <li><a href="#endian">9. Endianness</a></li>
+    <li><a href="#multi-write">10. Multi-Write Cheats</a></li>
+    <li><a href="#hotkeys">11. Hotkeys</a></li>
+    <li><a href="#escaping">12. Escape Rules</a></li>
+    <li><a href="#timing-notes">13. Timing &amp; Notes (v2.8)</a></li>
+    <li><a href="#range-lock">14. Value Range Lock (v3.0)</a></li>
+    <li><a href="#handlers">15. Handlers: RETRO vs EMU</a></li>
+    <li><a href="#example">16. Complete Example: Streets of Rage</a></li>
+    <li><a href="#bookmarks">17. Bookmarks File (.bookmarks)</a></li>
+    <li><a href="#manual">18. Writing .cfg Files by Hand</a></li>
+    <li><a href="#troubleshooting">19. Troubleshooting</a></li>
+  </ul>
+</div>
+
+<!-- ================================================================ -->
+<h2 id="what-is-cfg">1. What is a .cfg file?</h2>
+<p>A <code>.cfg</code> file is the configuration file used by the <strong>RA-BP Quick Cheat</strong> system &mdash; a custom cheat manager built into the RA-BP fork of RetroArch. Unlike standard RetroArch <code>.cht</code> files (which use a flat <code>key = value</code> format), Quick Cheat uses a compact <strong>pipe-separated</strong> format organized into sections, allowing a single cheat to write to up to 16 memory addresses at once.</p>
+
+<p>Each <code>.cfg</code> file stores two things in one place: the Quick Cheat popup's window settings, and all the cheat entries for a specific game. The file is auto-saved when you close the popup and auto-loaded when you open it, so you normally never need to edit it by hand &mdash; but understanding the format lets you create, share, and fine-tune cheat files directly.</p>
+
+<div class="note">
+<strong>Key points:</strong>
+<ul>
+<li>Files are plain text &mdash; open them in any text editor (Notepad, VS Code, etc.)</li>
+<li>One file per game, organized by core name and ROM name</li>
+<li>Two sections: <code>[settings]</code> (optional) and <code>[cheats]</code></li>
+<li>Cheat entries use pipe <code>|</code> as a field separator &mdash; much more compact than .cht</li>
+<li>Addresses and values are in <strong>hexadecimal</strong> (no <code>0x</code> prefix), unlike .cht which uses decimal</li>
+<li>One cheat can write to up to 16 addresses simultaneously (multi-write)</li>
+<li>Comments start with <code>#</code></li>
+</ul>
+</div>
+
+<div class="note-purple">
+<strong>Quick Cheat vs RetroArch .cht:</strong> If you already know the RetroArch <code>.cht</code> format, the main differences are: (1) <code>.cfg</code> uses pipe-separated fields instead of <code>key = value</code> pairs, (2) addresses/values are <strong>hex</strong> not decimal, (3) one cheat entry can hold multiple writes, (4) hotkeys and groups are built-in, and (5) there is an optional <code>[settings]</code> section for the popup window. Quick Cheat can also import and export standard <code>.cht</code> files for interoperability.
+</div>
+
+<!-- ================================================================ -->
+<h2 id="location">2. File Location &amp; Naming</h2>
+<p>Quick Cheat stores each game's config in a per-game file. The path is constructed automatically from the RetroArch executable directory, the loaded core name, and the ROM name:</p>
+
+<pre><code>&lt;RetroArch_dir&gt;/quick_cheat_profiles/&lt;core_name&gt;/&lt;rom_name&gt;.cfg</code></pre>
+
+<h3>Examples</h3>
+<table>
+<tr><th>Core</th><th>ROM</th><th>Config Path</th></tr>
+<tr><td>genesis_plus_gx_libretro.dll</td><td>Streets of Rage (USA).md</td><td><code>quick_cheat_profiles/genesis_plus_gx_libretro/Streets of Rage (USA).cfg</code></td></tr>
+<tr><td>snes9x_libretro.dll</td><td>Super Mario World.smc</td><td><code>quick_cheat_profiles/snes9x_libretro/Super Mario World.cfg</code></td></tr>
+<tr><td>nestopia_libretro.dll</td><td>Super Mario Bros. (JU).nes</td><td><code>quick_cheat_profiles/nestopia_libretro/Super Mario Bros. (JU).cfg</code></td></tr>
+</table>
+
+<h3>How Names Are Derived</h3>
+<ul>
+<li><strong>Core name:</strong> The core DLL's filename without its extension. For example, <code>genesis_plus_gx_libretro.dll</code> becomes <code>genesis_plus_gx_libretro</code>.</li>
+<li><strong>ROM name:</strong> The content file's name without its extension. If the ROM is inside a zip (e.g. <code>game.zip#game.nes</code>), the part after <code>#</code> is used. Characters that are illegal in filenames (<code>&lt; &gt; : " / \ | ? *</code>) are replaced with underscores.</li>
+<li>If the core or ROM name cannot be determined (e.g. no content loaded), the word <code>default</code> is used instead.</li>
+</ul>
+
+<div class="note-yellow">
+<strong>Sidecar files:</strong> Quick Cheat may also create two files alongside the <code>.cfg</code>:
+<ul>
+<li><code>&lt;rom_name&gt;.cfg.bookmarks</code> &mdash; saved memory bookmarks (address + size + label)</li>
+<li><code>quick_cheat_log.txt</code> &mdash; a rotating log (max 1000 lines) in the RetroArch directory, useful for debugging</li>
+</ul>
+</div>
+
+<!-- ================================================================ -->
+<h2 id="structure">3. File Structure Overview</h2>
+<p>A <code>.cfg</code> file has two sections, both optional in principle but conventionally both present:</p>
+
+<pre><code># RA-BP Quick Cheat Config v2.2
+# This file is auto-generated. Do not edit while popup is open.
+
+[settings]
+notify=0
+auto_apply=0
+x=100
+y=100
+w=900
+h=600
+
+[cheats]
+# Fields: addr|val|desc|size|type|enabled|freeze|bigendian|group|handler|code|hotkey
+# Multi-write: addr/val/size/type/bigendian can be ;-separated.
+
+B832|50|Infinite HP (P1)|8|set|1|1|0|Player 1|1||0|0||0|0|0
+FF21|09|Infinite Lives (P1)|8|set|1|1|0|Player 1|1||0|0||0|0|0</code></pre>
+
+<div class="note">
+<strong>Section rules:</strong>
+<ul>
+<li>Section headers are lines starting with <code>[</code> &mdash; specifically <code>[settings]</code> and <code>[cheats]</code>.</li>
+<li>Lines starting with <code>#</code> are comments and are ignored.</li>
+<li>Blank lines are ignored.</li>
+<li>If a section header is missing, Quick Cheat still tries to parse keys (<code>notify=</code>, <code>x=</code>, etc.) wherever they appear, and treats non-key lines in the cheats area as cheat entries. This makes the format forgiving.</li>
+</ul>
+</div>
+
+<!-- ================================================================ -->
+<h2 id="settings">4. The [settings] Section (Optional)</h2>
+<p>The <code>[settings]</code> section stores the Quick Cheat popup's window position, size, and two behavior toggles. <strong>This entire section is optional</strong> &mdash; if any key is missing, Quick Cheat uses a built-in default. If the section is absent entirely, all defaults are used. This means a <code>.cfg</code> file can contain nothing but a <code>[cheats]</code> section and Quick Cheat will still load it correctly.</p>
+
+<h3>Settings Keys</h3>
+<table>
+<tr><th>Key</th><th>Type</th><th>Default</th><th>Description</th></tr>
+<tr><td><code>notify</code></td><td>0 or 1</td><td>0</td><td>Whether to show on-screen notifications when a hotkey fires a cheat (1 = on, 0 = off)</td></tr>
+<tr><td><code>auto_apply</code></td><td>0 or 1</td><td>0</td><td>Whether to automatically apply all enabled cheats when content loads (1 = on, 0 = off)</td></tr>
+<tr><td><code>x</code></td><td>int (pixels)</td><td>100</td><td>Popup window left-edge X coordinate</td></tr>
+<tr><td><code>y</code></td><td>int (pixels)</td><td>100</td><td>Popup window top-edge Y coordinate</td></tr>
+<tr><td><code>w</code></td><td>int (pixels)</td><td>900</td><td>Popup window width (capped at 65% of screen width)</td></tr>
+<tr><td><code>h</code></td><td>int (pixels)</td><td>600</td><td>Popup window height (capped at 75% of screen height)</td></tr>
+</table>
+
+<div class="note-yellow">
+<strong>The [settings] section is NOT mandatory.</strong> You can omit it entirely. You can also include only some keys &mdash; missing keys fall back to their defaults. The parser even recognizes <code>notify=</code>, <code>auto_apply=</code>, <code>x=</code>, <code>y=</code>, <code>w=</code>, <code>h=</code> outside of any section, so a file with no <code>[settings]</code> header but with these keys will still load them. This is by design: the format is forgiving so hand-written files "just work."
+</div>
+
+<h3>Minimal Example (No Settings)</h3>
+<p>This is a perfectly valid <code>.cfg</code> file &mdash; no <code>[settings]</code> section at all:</p>
+<pre><code>[cheats]
+B832|50|Infinite HP (P1)|8|set|1|1|0|Player 1|1||0</code></pre>
+
+<h3>Full Example (With Settings)</h3>
+<pre><code># RA-BP Quick Cheat Config v2.2
+
+[settings]
+notify=1
+auto_apply=0
+x=120
+y=80
+w=1000
+h=700
+
+[cheats]
+B832|50|Infinite HP (P1)|8|set|1|1|0|Player 1|1||0</code></pre>
+
+<!-- ================================================================ -->
+<h2 id="cheats">5. The [cheats] Section</h2>
+<p>The <code>[cheats]</code> section is where the actual cheat entries live. Each non-comment, non-blank line in this section is one cheat entry. Fields are separated by the pipe character <code>|</code>. This is far more compact than the RetroArch <code>.cht</code> format &mdash; a single line holds an entire cheat with all its properties.</p>
+
+<h3>Basic Single-Write Cheat</h3>
+<pre><code>B832|50|Infinite HP (P1)|8|set|1|1|0|Player 1|1||0</code></pre>
+
+<p>This single line creates a cheat that writes the hex value <code>50</code> (decimal 80) to address <code>B832</code> every frame, with the description "Infinite HP (P1)", in the "Player 1" group, using the RETRO memory-write handler, and no hotkey.</p>
+
+<h3>Multi-Write Cheat</h3>
+<pre><code>B932;B9B5;BA32;BB32;BBB2;BAB2;BCB2|00|Kill All Enemies|8|set|1|0|0|Kill All|1||10</code></pre>
+
+<p>This one line creates a cheat that writes <code>00</code> to <strong>seven</strong> enemy health addresses simultaneously, assigned to the <code>Ctrl+Num1</code> hotkey (hotkey ID 10). The addresses are separated by semicolons <code>;</code>.</p>
+
+<div class="note">
+<strong>Why pipe-separated?</strong> The pipe format was chosen for compactness. A 12-field cheat that would take 12 lines in <code>.cht</code> format fits on a single line in <code>.cfg</code>. This makes large cheat files (50+ entries) manageable and easy to share in chat or forum posts.
+</div>
+
+<!-- ================================================================ -->
+<h2 id="fields">6. Field Reference (All 17 Fields)</h2>
+<p>Each cheat line has up to 17 pipe-separated fields. The first 12 are the "core" fields (v2.0). Fields 13&ndash;14 were added in v2.8, and fields 15&ndash;17 in v3.0. Fields 13&ndash;17 are <strong>optional</strong> &mdash; if they are missing or empty, sensible defaults are used. This means old v2.0 cheat files still load perfectly in v3.6.</p>
+
+<table>
+<tr><th>#</th><th>Field</th><th>Type</th><th>Default</th><th>Description</th></tr>
+<tr><td><span class="field-num">1</span></td><td><code>addr</code></td><td>hex</td><td>&mdash;</td><td>Memory address (no <code>0x</code> prefix). Multi-write: <code>;</code>-separated list, up to 16 addresses.</td></tr>
+<tr><td><span class="field-num">2</span></td><td><code>val</code></td><td>hex</td><td>0</td><td>Value to write (no <code>0x</code> prefix). Single value broadcasts to all writes. Multi-write: <code>;</code>-separated.</td></tr>
+<tr><td><span class="field-num">3</span></td><td><code>desc</code></td><td>string</td><td>""</td><td>Description shown in the cheat list (escaped &mdash; see <a href="#escaping">Escape Rules</a>).</td></tr>
+<tr><td><span class="field-num">4</span></td><td><code>size</code></td><td>int</td><td>8</td><td>Bit width: <code>8</code>, <code>16</code>, or <code>32</code>. Multi-write: <code>;</code>-separated.</td></tr>
+<tr><td><span class="field-num">5</span></td><td><code>type</code></td><td>string</td><td>set</td><td>Cheat type: <code>set</code>, <code>inc</code>, <code>dec</code>, <code>eq</code>, <code>neq</code>, <code>lt</code>, <code>gt</code>. Multi-write: <code>;</code>-separated.</td></tr>
+<tr><td><span class="field-num">6</span></td><td><code>enabled</code></td><td>0/1</td><td>1</td><td>1 = cheat is active (will apply). 0 = disabled (does nothing).</td></tr>
+<tr><td><span class="field-num">7</span></td><td><code>freeze</code></td><td>0/1</td><td>0</td><td>1 = re-apply every frame ("freeze" the value). 0 = one-shot only. Ignored for conditional types (eq/neq/lt/gt).</td></tr>
+<tr><td><span class="field-num">8</span></td><td><code>bigendian</code></td><td>0/1</td><td>0</td><td>1 = big-endian byte order (Sega Genesis/68000). 0 = little-endian (NES, SNES, GB, PSX). Multi-write: <code>;</code>-separated.</td></tr>
+<tr><td><span class="field-num">9</span></td><td><code>group</code></td><td>string</td><td>""</td><td>Logical grouping shown in the filter dropdown (escaped). E.g. "Player 1", "Enemies", "Hotkeys".</td></tr>
+<tr><td><span class="field-num">10</span></td><td><code>handler</code></td><td>int</td><td>0</td><td>0 = EMU (Game Genie/GameShark code string). 1 = RETRO (direct memory write). Most cheats use 1.</td></tr>
+<tr><td><span class="field-num">11</span></td><td><code>code</code></td><td>string</td><td>""</td><td>Emulator code string, only used when <code>handler=0</code> (escaped). E.g. <code>AT4A-AA48</code>.</td></tr>
+<tr><td><span class="field-num">12</span></td><td><code>hotkey</code></td><td>int</td><td>0</td><td>0 = none. 1&ndash;9 = Numpad 1&ndash;9. 10&ndash;18 = Ctrl+Num 1&ndash;9. 19&ndash;27 = Alt+Num 1&ndash;9.</td></tr>
+<tr><td><span class="field-num">13</span></td><td><code>timing</code></td><td>int</td><td>0</td><td><strong>(v2.8, optional)</strong> Apply every N frames. 0 or 1 = every frame. 2 = every 2nd frame, etc. Slows down freeze rate.</td></tr>
+<tr><td><span class="field-num">14</span></td><td><code>notes</code></td><td>string</td><td>""</td><td><strong>(v2.8, optional)</strong> Per-cheat notes for your own reference (escaped). Not shown in the list, but visible in the edit dialog.</td></tr>
+<tr><td><span class="field-num">15</span></td><td><code>range_lock</code></td><td>0/1</td><td>0</td><td><strong>(v3.0, optional)</strong> 1 = enable value range lock. When on, Quick Cheat reads the current value and clamps it to [range_min, range_max] instead of writing a fixed value.</td></tr>
+<tr><td><span class="field-num">16</span></td><td><code>range_min</code></td><td>hex</td><td>0</td><td><strong>(v3.0, optional)</strong> Minimum allowed value (hex, no prefix). Only used when range_lock=1.</td></tr>
+<tr><td><span class="field-num">17</span></td><td><code>range_max</code></td><td>hex</td><td>0</td><td><strong>(v3.0, optional)</strong> Maximum allowed value (hex, no prefix). Only used when range_lock=1.</td></tr>
+</table>
+
+<div class="note-red">
+<strong>Critical difference from .cht:</strong> In Quick Cheat <code>.cfg</code> files, addresses and values are written in <strong>hexadecimal</strong> without the <code>0x</code> prefix (e.g. <code>B832</code>, not <code>47154</code>). In RetroArch <code>.cht</code> files, the same address is written in <strong>decimal</strong> as <code>47154</code>. Always double-check which format you are editing!
+</div>
+
+<div class="note-yellow">
+<strong>Optional trailing fields:</strong> Fields 13&ndash;17 can be omitted entirely. A cheat line with only 12 fields is perfectly valid and will load with timing=0, empty notes, and range_lock=0. This preserves backwards compatibility with v2.0 cheat files.
+</div>
+
+<!-- ================================================================ -->
+<h2 id="cheat-types">7. Cheat Types</h2>
+<p>The <code>type</code> field (field 5) controls what happens when the cheat is applied. There are seven types: three "action" types and four "conditional" types.</p>
+
+<table>
+<tr><th>Keyword</th><th>ID</th><th>Name</th><th>Description</th></tr>
+<tr><td><code>set</code></td><td>1</td><td>Set Value</td><td>Writes <code>val</code> to <code>addr</code>. This is the most common type &mdash; use it for infinite health, infinite lives, unlocking characters, freezing timers, etc.</td></tr>
+<tr><td><code>inc</code></td><td>2</td><td>Increase</td><td>Adds <code>val</code> to the current value at <code>addr</code>. For hotkey cheats, <code>val</code> is the amount added per press.</td></tr>
+<tr><td><code>dec</code></td><td>3</td><td>Decrease</td><td>Subtracts <code>val</code> from the current value. For hotkey cheats, <code>val</code> is the amount subtracted per press.</td></tr>
+<tr><td><code>eq</code></td><td>4</td><td>If Equal</td><td>Conditional: if the current value at <code>addr</code> equals <code>val</code>, execute the <em>next</em> cheat in the list. Otherwise skip it.</td></tr>
+<tr><td><code>neq</code></td><td>5</td><td>If Not Equal</td><td>Conditional: if current value &ne; <code>val</code>, execute the next cheat. Otherwise skip it.</td></tr>
+<tr><td><code>lt</code></td><td>6</td><td>If Less Than</td><td>Conditional: if current value &lt; <code>val</code>, execute the next cheat.</td></tr>
+<tr><td><code>gt</code></td><td>7</td><td>If Greater Than</td><td>Conditional: if current value &gt; <code>val</code>, execute the next cheat.</td></tr>
+</table>
+
+<div class="note-yellow">
+<strong>When to use each:</strong>
+<ul>
+<li><strong>set</strong> &mdash; Infinite health, infinite lives, infinite ammo, unlock characters, freeze timer, stage select, difficulty change</li>
+<li><strong>inc / dec</strong> &mdash; Hotkey-triggered adjustments: "HP +10", "Score +10000", "Lives -1". Also useful for one-shot score boosts.</li>
+<li><strong>eq / neq / lt / gt</strong> &mdash; Multi-step conditional cheats. For example: cheat N checks "if boss health &lt; 50" and cheat N+1 (which runs only if the condition is met) sets boss health to 0.</li>
+</ul>
+</div>
+
+<div class="note">
+<strong>Conditionals and freeze:</strong> If any write in a cheat uses a conditional type (eq/neq/lt/gt), the <code>freeze</code> flag is automatically forced to 0. Conditionals are evaluated per-application, not per-frame &mdash; they gate whether the <em>next</em> cheat runs.
+</div>
+
+<!-- ================================================================ -->
+<h2 id="memory-sizes">8. Memory Sizes</h2>
+<p>The <code>size</code> field (field 4) tells Quick Cheat how many bits to read or write at the address. Unlike RetroArch's <code>.cht</code> format (which uses codes 0&ndash;5), Quick Cheat uses the actual bit count for clarity.</p>
+
+<table>
+<tr><th>Value</th><th>Size</th><th>Range</th><th>Use When</th></tr>
+<tr><td><code>8</code></td><td>8-bit (1 byte)</td><td>0&ndash;255 (0&ndash;FF)</td><td><strong>Most common.</strong> Health, lives, items, level numbers, character IDs, flags</td></tr>
+<tr><td><code>16</code></td><td>16-bit (2 bytes)</td><td>0&ndash;65535 (0&ndash;FFFF)</td><td>Scores, large counters, 16-bit timers, pair-of-bytes values</td></tr>
+<tr><td><code>32</code></td><td>32-bit (4 bytes)</td><td>0&ndash;4294967295</td><td>Very large values (rare on 8/16-bit consoles; more common on PSX/N64)</td></tr>
+</table>
+
+<div class="note-yellow">
+<strong>Endianness matters for 16-bit and 32-bit.</strong> For 8-bit writes, the <code>bigendian</code> field is ignored. For 16/32-bit, you must set <code>bigendian</code> correctly or your cheat will write to the wrong bytes. See the next section.
+</div>
+
+<!-- ================================================================ -->
+<h2 id="endian">9. Endianness</h2>
+<p>Multi-byte values can be stored in memory in two orders. "Big-endian" stores the most significant byte first (lowest address). "Little-endian" stores the least significant byte first. If you get this wrong on a 16-bit or 32-bit cheat, the value will be garbled or written to the wrong half of the pair.</p>
+
+<table>
+<tr><th>Console</th><th>Endianness</th><th><code>bigendian</code> field</th></tr>
+<tr><td>Sega Genesis / Mega Drive (68000)</td><td>Big-endian</td><td><code>1</code></td></tr>
+<tr><td>Arcade (varies by board)</td><td>Often big-endian</td><td><code>1</code> (try first)</td></tr>
+<tr><td>NES</td><td>Little-endian</td><td><code>0</code></td></tr>
+<tr><td>SNES</td><td>Little-endian</td><td><code>0</code></td></tr>
+<tr><td>Game Boy / GBC / GBA</td><td>Little-endian</td><td><code>0</code></td></tr>
+<tr><td>PlayStation / PS2</td><td>Little-endian</td><td><code>0</code></td></tr>
+<tr><td>Nintendo 64</td><td>Big-endian</td><td><code>1</code></td></tr>
+</table>
+
+<div class="note">
+<strong>Rule of thumb:</strong> If your 8-bit cheat works but your 16-bit cheat produces weird results, toggle <code>bigendian</code>. For 8-bit cheats, this field does nothing. For multi-write cheats, <code>bigendian</code> can be <code>;</code>-separated if different writes need different byte orders (rare).
+</div>
+
+<!-- ================================================================ -->
+<h2 id="multi-write">10. Multi-Write Cheats</h2>
+<p>One of Quick Cheat's signature features is <strong>multi-write</strong>: a single cheat entry can write to up to 16 different memory addresses in one operation. This is perfect for "kill all enemies" (write 0 to 7 enemy health addresses), "max all stats" (write max to strength, speed, defense, etc.), or "clear all stage flags" simultaneously.</p>
+
+<h3>How It Works</h3>
+<p>Fields that support multi-write use semicolons <code>;</code> to separate per-write values:</p>
+<ul>
+<li><strong>addr</strong> (field 1): <code>B932;B9B5;BA32</code> = three addresses</li>
+<li><strong>val</strong> (field 2): <code>00;01;02</code> = three different values, one per address</li>
+<li><strong>size</strong> (field 4): <code>8;8;16</code> = per-write sizes (usually all the same)</li>
+<li><strong>type</strong> (field 5): <code>set;set;set</code> = per-write types (usually all the same)</li>
+<li><strong>bigendian</strong> (field 8): <code>0;0;1</code> = per-write endianness (usually all the same)</li>
+</ul>
+
+<h3>Value Broadcasting</h3>
+<p>If <code>val</code> has only <strong>one</strong> value but <code>addr</code> has multiple, that single value is broadcast to all writes. Same for <code>size</code>, <code>type</code>, and <code>bigendian</code>. This means you usually only need to specify one value even for multi-write cheats.</p>
+
+<table>
+<tr><th>addr field</th><th>val field</th><th>Result</th></tr>
+<tr><td><code>B932;B9B5;BA32</code></td><td><code>00</code></td><td>Write 00 to all three addresses (broadcast)</td></tr>
+<tr><td><code>B932;B9B5;BA32</code></td><td><code>00;01;02</code></td><td>Write 00 to B932, 01 to B9B5, 02 to BA32 (per-write)</td></tr>
+<tr><td><code>FA78;FF06</code></td><td><code>01;04</code></td><td>Write 01 to FA78, 04 to FF06 (per-write, two different values)</td></tr>
+</table>
+
+<h3>Examples</h3>
+
+<h4>Kill All Enemies (broadcast value)</h4>
+<pre><code>B932;B9B5;BA32;BB32;BBB2;BAB2;BCB2|00|Kill All Enemies|8|set|1|0|0|Kill All|1||10</code></pre>
+<p>Seven enemy health addresses, all set to <code>00</code>. The single <code>00</code> in the val field broadcasts to all seven writes. Hotkey 10 = Ctrl+Num1.</p>
+
+<h4>Clear Stage (per-write values)</h4>
+<pre><code>FA78;FF06|01;04|Clear Stage|8|set|1|0|0|Clear Stage|1||11</code></pre>
+<p>Two addresses with two different values: <code>FA78</code> &larr; <code>01</code> (boss complete flag) and <code>FF06</code> &larr; <code>04</code> (level complete flag). Hotkey 11 = Ctrl+Num2.</p>
+
+<div class="note-yellow">
+<strong>Limit:</strong> A single cheat can have at most 16 writes (16 addresses). If you need more, split into multiple cheat entries. The total cheat list can hold up to 256 entries.
+</div>
+
+<!-- ================================================================ -->
+<h2 id="hotkeys">11. Hotkeys</h2>
+<p>Quick Cheat supports 27 hotkey slots, all based on the numeric keypad (Numpad). The <code>hotkey</code> field (field 12) encodes which slot a cheat is assigned to. When you press the corresponding key combination during gameplay, the cheat is applied as a one-shot (regardless of its <code>freeze</code> setting).</p>
+
+<table>
+<tr><th>ID</th><th>Key Combination</th><th>Notes</th></tr>
+<tr><td><code>0</code></td><td>(none)</td><td>No hotkey &mdash; the cheat is only applied via the Apply button or freeze loop</td></tr>
+<tr><td><code>1</code>&ndash;<code>9</code></td><td>Numpad 1 &ndash; Numpad 9</td><td>Single-key, no modifier</td></tr>
+<tr><td><code>10</code>&ndash;<code>18</code></td><td>Ctrl + Numpad 1 &ndash; Ctrl + Numpad 9</td><td>Two-combo</td></tr>
+<tr><td><code>19</code>&ndash;<code>27</code></td><td>Alt + Numpad 1 &ndash; Alt + Numpad 9</td><td>Two-combo</td></tr>
+</table>
+
+<h3>Special Hotkeys (Not Cheat Slots)</h3>
+<p>These are built-in and cannot be assigned to cheats:</p>
+<table>
+<tr><th>Key</th><th>Action</th></tr>
+<tr><td>Numpad 0</td><td>Open / close the Quick Cheat popup</td></tr>
+<tr><td>Ctrl + Numpad 0</td><td>Apply all enabled cheats (one-shot)</td></tr>
+<tr><td>Alt + Numpad 0</td><td>Disable all cheats</td></tr>
+</table>
+
+<div class="note">
+<strong>Hotkey behavior:</strong> When a hotkey fires, Quick Cheat applies <em>all enabled cheats</em> that share that hotkey ID, as a one-shot. This means you can group several cheats under one hotkey to fire them together (e.g. "HP +10" and "Special +1" both on Num3). The <code>freeze</code> flag is irrelevant for hotkey application &mdash; freeze only affects the per-frame loop.
+</div>
+
+<h3>Hotkey Examples</h3>
+<pre><code># Num1: HP +10 (P1)
+B832|0A|HP +10 (P1) [Num1]|8|inc|1|0|0|Hotkeys|1||1
+
+# Num2: HP -10 (P1)
+B832|0A|HP -10 (P1) [Num2]|8|dec|1|0|0|Hotkeys|1||2
+
+# Ctrl+Num1: Kill All Enemies (7 addresses at once)
+B932;B9B5;BA32;BB32;BBB2;BAB2;BCB2|00|Kill All Enemies [Ctrl+1]|8|set|1|0|0|Kill All|1||10</code></pre>
+
+<!-- ================================================================ -->
+<h2 id="escaping">12. Escape Rules</h2>
+<p>Because the pipe <code>|</code> separates fields and newlines separate cheat entries, special characters in text fields (<code>desc</code>, <code>group</code>, <code>code</code>, <code>notes</code>) must be escaped. Quick Cheat uses backslash escapes:</p>
+
+<table>
+<tr><th>Character</th><th>Escape Sequence</th><th>Why</th></tr>
+<tr><td><code>|</code> (pipe)</td><td><code>\p</code></td><td>Pipe is the field separator &mdash; an unescaped pipe would split the field</td></tr>
+<tr><td><code>\n</code> (newline)</td><td><code>\n</code></td><td>Newline would start a new cheat line</td></tr>
+<tr><td><code>\r</code> (carriage return)</td><td><code>\r</code></td><td>Part of Windows line endings</td></tr>
+<tr><td><code>\</code> (backslash)</td><td><code>\\</code></td><td>Backslash itself must be escaped so <code>\p</code> etc. are unambiguous</td></tr>
+</table>
+
+<div class="note-yellow">
+<strong>Example:</strong> A description like <code>Health | Ammo (P1\nP2)</code> would be stored as:
+<pre><code>Health \p Ammo (P1\nP2)</code></pre>
+When Quick Cheat reads this back, it converts <code>\p</code> back to <code>|</code> and <code>\n</code> back to a newline.
+</div>
+
+<div class="note">
+<strong>When to worry about escaping:</strong> Most cheat descriptions are plain text ("Infinite Health", "Stage 3") and need no escaping. You only need it if your description contains a pipe, newline, or backslash. Game Genie / GameShark codes never contain these characters, so the <code>code</code> field usually needs no escaping either.
+</div>
+
+<!-- ================================================================ -->
+<h2 id="timing-notes">13. Timing &amp; Notes (v2.8)</h2>
+<p>Version 2.8 added two optional fields that let you fine-tune cheat behavior and document your cheats.</p>
+
+<h3>Timing Interval (field 13)</h3>
+<p>The <code>timing</code> field controls how often a <strong>freeze</strong> cheat re-applies its value. By default (0 or 1), a freeze cheat writes every frame &mdash; 60 times per second on most cores. Setting <code>timing</code> to a higher value slows this down:</p>
+
+<table>
+<tr><th>timing value</th><th>Behavior</th></tr>
+<tr><td><code>0</code> or <code>1</code></td><td>Apply every frame (default &mdash; standard freeze)</td></tr>
+<tr><td><code>2</code></td><td>Apply every 2nd frame (30 times/sec)</td></tr>
+<tr><td><code>6</code></td><td>Apply every 6th frame (10 times/sec)</td></tr>
+<tr><td><code>60</code></td><td>Apply once per second</td></tr>
+</table>
+
+<div class="note-yellow">
+<strong>Use case:</strong> Some games detect "too-fast" writes and flag them as cheating, or the value flickers annoyingly when written every frame. A timing of 2&ndash;6 often fixes this while still keeping the value locked. This field only affects freeze cheats &mdash; one-shot and hotkey cheats ignore it.
+</div>
+
+<h3>Per-Cheat Notes (field 14)</h3>
+<p>The <code>notes</code> field is a free-form text field for your own reference. It is not displayed in the cheat list, but it is visible in the edit dialog and preserved across saves. Use it to record where you found the address, what the value means, or any caveats:</p>
+
+<pre><code>B832|50|Infinite HP (P1)|8|set|1|1|0|Player 1|1||0|0|Found on RetroAchievements. 50 hex = 80 decimal.|0|0|0</code></pre>
+
+<!-- ================================================================ -->
+<h2 id="range-lock">14. Value Range Lock (v3.0)</h2>
+<p>Version 3.0 introduced <strong>Value Range Lock</strong>, a different way to "freeze" a value. Instead of writing a fixed value every frame, a range-locked cheat <em>reads</em> the current value and only writes if it falls outside the allowed range. This lets the game modify the value freely within bounds, while preventing it from going too low (e.g. death) or too high (e.g. overflow).</p>
+
+<h3>The Three Fields</h3>
+<table>
+<tr><th>#</th><th>Field</th><th>Type</th><th>Description</th></tr>
+<tr><td>15</td><td><code>range_lock</code></td><td>0/1</td><td>1 = enable range lock. When enabled, the <code>val</code> field is ignored for freeze writes; instead the current value is clamped.</td></tr>
+<tr><td>16</td><td><code>range_min</code></td><td>hex</td><td>Minimum allowed value. If current &lt; min, write min.</td></tr>
+<tr><td>17</td><td><code>range_max</code></td><td>hex</td><td>Maximum allowed value. If current &gt; max, write max.</td></tr>
+</table>
+
+<h3>How It Works</h3>
+<p>When a freeze cheat has <code>range_lock=1</code>, every frame Quick Cheat does this:</p>
+<ol>
+<li>Read the current value at <code>addr</code></li>
+<li>If current &lt; <code>range_min</code>: write <code>range_min</code></li>
+<li>If current &gt; <code>range_max</code>: write <code>range_max</code></li>
+<li>If current is within range: do nothing (let the game's value stand)</li>
+</ol>
+
+<h3>Example: Keep HP between 50 and 99</h3>
+<pre><code>B832|00|HP Lock 50-99 (P1)|8|set|1|1|0|Player 1|1||0|0||1|32|63</code></pre>
+<p>This locks Player 1's health so it can never drop below hex <code>32</code> (decimal 50) or exceed hex <code>63</code> (decimal 99). The game can heal or damage within that range, but the value is clamped at the boundaries. Note: the <code>val</code> field (<code>00</code>) is ignored when range_lock is on, but must still be present as a placeholder.</p>
+
+<div class="note-yellow">
+<strong>Range lock vs freeze:</strong> A normal freeze (<code>freeze=1, range_lock=0</code>) pins the value to exactly <code>val</code> every frame &mdash; the game cannot change it at all. A range lock (<code>freeze=1, range_lock=1</code>) lets the game change the value within [min, max] and only intervenes at the boundaries. Use freeze when you want a fixed value; use range lock when you want a "safety net."
+</div>
+
+<!-- ================================================================ -->
+<h2 id="handlers">15. Handlers: RETRO vs EMU</h2>
+<p>The <code>handler</code> field (field 10) selects how the cheat is applied. There are two handlers:</p>
+
+<h3>RETRO Handler (handler = 1)</h3>
+<p>This is the default and most common. Quick Cheat directly reads and writes the core's memory using the <code>addr</code>, <code>val</code>, <code>size</code>, and <code>bigendian</code> fields. This is what you will use for 99% of cheats created from RetroAchievements code notes. The <code>code</code> field is ignored (leave it empty).</p>
+
+<h3>EMU Handler (handler = 0)</h3>
+<p>This handler is for emulator-specific cheat code strings &mdash; Game Genie (Genesis), GameShark (GB/GBA/N64), Pro Action Replay (SNES), etc. The code goes in the <code>code</code> field as a string. The <code>addr</code>, <code>val</code>, <code>size</code>, and <code>bigendian</code> fields are ignored for EMU cheats &mdash; you still need to include them as placeholders, but their values don't matter.</p>
+
+<p>Behind the scenes, EMU cheats are registered in RetroArch's own cheat manager and applied via the core's cheat code processor. This is the only way Game Genie / GameShark codes work, because they use emulator-specific encoding that the core must decode.</p>
+
+<h3>EMU Cheat Example (Game Genie for Genesis)</h3>
+<pre><code>0000|00|Infinite Fighters (Game Genie)|8|set|1|0|0|Game Genie|0|AT4A-AA48|0</code></pre>
+<p>Note: <code>handler=0</code>, the code <code>AT4A-AA48</code> is in the <code>code</code> field, and the addr/val/size fields are placeholders. Multi-code Game Genie cheats use <code>+</code> to join codes:</p>
+<pre><code>0000|00|Start Timer at 99|8|set|1|0|0|Game Genie|0|RGMA-C6VC+XGMA-DA3E|0</code></pre>
+
+<div class="note-red">
+<strong>Important:</strong> Not all cores support EMU cheat codes. If your Game Genie code doesn't work, check the core's documentation. Genesis Plus GX supports Game Genie codes for Genesis games. For other systems, you may need to find the equivalent RETRO cheat (using code notes) instead.
+</div>
+
+<!-- ================================================================ -->
+<h2 id="example">16. Complete Example: Streets of Rage</h2>
+<p>Here is a complete <code>.cfg</code> file for Streets of Rage (Genesis/Mega Drive), demonstrating all the major features: freeze cheats, one-shot cheats, hotkeys, multi-write cheats, 16-bit big-endian cheats, and Game Genie codes. Genesis is big-endian, so <code>bigendian=1</code> for 16-bit writes.</p>
+
+<pre><code># RA-BP Quick Cheat Config v2.2
+# Game: Streets of Rage (Genesis/Mega Drive)
+# Source: RetroAchievements code notes + Game Genie database
+
+[settings]
+notify=1
+auto_apply=0
+x=100
+y=100
+w=900
+h=600
+
+[cheats]
+# Fields: addr|val|desc|size|type|enabled|freeze|bigendian|group|handler|code|hotkey|timing|notes|range_lock|range_min|range_max
+
+# ===== Player 1: Infinite Resources (frozen) =====
+B832|50|Infinite HP (P1)|8|set|1|1|0|Player 1|1||0|0||0|0|0
+FF21|09|Infinite Lives (P1)|8|set|1|1|0|Player 1|1||0|0||0|0|0
+FF20|09|Infinite Specials (P1)|8|set|1|1|0|Player 1|1||0|0||0|0|0
+
+# ===== Player 1: Character Select (one-shot; set then load game) =====
+FF1F|00|P1 Character: Axel|8|set|0|0|0|Player 1|1||0|0||0|0|0
+FF1F|01|P1 Character: Adam|8|set|0|0|0|Player 1|1||0|0||0|0|0
+FF1F|02|P1 Character: Blaze|8|set|0|0|0|Player 1|1||0|0||0|0|0
+
+# ===== Player 2: Infinite Resources (frozen) =====
+B8B2|50|Infinite HP (P2)|8|set|0|1|0|Player 2|1||0|0||0|0|0
+
+# ===== Enemies: Instant Kill (freeze HP at 0) =====
+B932|00|Kill Enemy 1 (Boss slot)|8|set|0|1|0|Enemies|1||0|0||0|0|0
+B9B5|00|Kill Enemy 2|8|set|0|1|0|Enemies|1||0|0||0|0|0
+BA32|00|Kill Enemy 3|8|set|0|1|0|Enemies|1||0|0||0|0|0
+BAB2|00|Kill Enemy 6|8|set|0|1|0|Enemies|1||0|0||0|0|0
+BB32|00|Kill Enemy 4|8|set|0|1|0|Enemies|1||0|0||0|0|0
+BBB2|00|Kill Enemy 5|8|set|0|1|0|Enemies|1||0|0||0|0|0
+BCB2|00|Kill Enemy 8|8|set|0|1|0|Enemies|1||0|0||0|0|0
+
+# ===== Time =====
+FB01|63|Time Freeze (99 secs)|8|set|0|1|0|Time|1||0|0||0|0|0
+FB00|0063|Stage Time Lock (16-bit, 99 secs)|16|set|0|1|1|Time|1||0|0||0|0|0
+
+# ===== Difficulty (one-shot) =====
+FFC6|00|Difficulty: Easy|8|set|0|0|0|Difficulty|1||0|0||0|0|0
+FFC6|01|Difficulty: Normal|8|set|0|0|0|Difficulty|1||0|0||0|0|0
+FFC6|02|Difficulty: Hard|8|set|0|0|0|Difficulty|1||0|0||0|0|0
+FFC6|03|Difficulty: Hardest|8|set|0|0|0|Difficulty|1||0|0||0|0|0
+
+# ===== Stage Select (one-shot) =====
+FF02|00|Stage 1|8|set|0|0|0|Stage Select|1||0|0||0|0|0
+FF02|01|Stage 2|8|set|0|0|0|Stage Select|1||0|0||0|0|0
+FF02|02|Stage 3|8|set|0|0|0|Stage Select|1||0|0||0|0|0
+FF02|03|Stage 4|8|set|0|0|0|Stage Select|1||0|0||0|0|0
+FF02|04|Stage 5|8|set|0|0|0|Stage Select|1||0|0||0|0|0
+FF02|05|Stage 6|8|set|0|0|0|Stage Select|1||0|0||0|0|0
+FF02|06|Stage 7|8|set|0|0|0|Stage Select|1||0|0||0|0|0
+FF02|07|Stage 8 (Final - Mr. X)|8|set|0|0|0|Stage Select|1||0|0||0|0|0
+
+# ===== Score Boost (16-bit big-endian, one-shot increments) =====
+FF08|0100|Score +10000 (high 16 bits)|16|inc|0|0|1|Score|1||0|0||0|0|0
+FF0A|0100|Score +256 (low 16 bits)|16|inc|0|0|1|Score|1||0|0||0|0|0
+
+# ===== Police Special (16-bit big-endian, one-shot trigger) =====
+F1F6|4817|Call Police Special|16|set|0|0|1|Special|1||0|0||0|0|0
+
+# ===== Cheat Menu Unlock & Mr. X Defeat (one-shot) =====
+FA7A|01|Unlock Hidden Cheat Menu|8|set|0|0|0|System|1||0|0||0|0|0
+BB31|0E|Defeat Mr. X (final boss)|8|set|0|0|0|Special|1||0|0||0|0|0
+
+# ===== In-Game Hotkeys (Num1-Num9) =====
+B832|0A|HP +10 (P1) [Num1]|8|inc|1|0|0|Hotkeys|1||1|0||0|0|0
+B832|0A|HP -10 (P1) [Num2]|8|dec|1|0|0|Hotkeys|1||2|0||0|0|0
+FF20|01|Special +1 (P1) [Num3]|8|inc|1|0|0|Hotkeys|1||3|0||0|0|0
+FF21|01|Life +1 (P1) [Num4]|8|inc|1|0|0|Hotkeys|1||4|0||0|0|0
+FF08|0064|Score +10000 [Num5]|16|inc|1|0|1|Hotkeys|1||5|0||0|0|0
+F1F6|4817|Call Police [Num6]|16|set|1|0|1|Hotkeys|1||6|0||0|0|0
+FB01|63|Reset Stage Time to 99 [Num7]|8|set|1|0|0|Hotkeys|1||7|0||0|0|0
+B8B2|0A|HP +10 (P2) [Num8]|8|inc|1|0|0|Hotkeys|1||8|0||0|0|0
+B8B2|0A|HP -10 (P2) [Num9]|8|dec|1|0|0|Hotkeys|1||9|0||0|0|0
+
+# ===== Multi-Write Cheats (Ctrl+Num hotkeys) =====
+# Kill All Enemies: ONE cheat writes 7 enemy HP addresses to 0 simultaneously.
+B932;B9B5;BA32;BB32;BBB2;BAB2;BCB2|00|Kill All Enemies [Ctrl+1]|8|set|1|0|0|Kill All|1||10|0||0|0|0
+
+# Clear Stage: ONE cheat sets Boss Complete + Level Complete simultaneously.
+FA78;FF06|01;04|Clear Stage [Ctrl+2]|8|set|1|0|0|Clear Stage|1||11|0||0|0|0
+
+# ===== Value Range Lock (v3.0) =====
+# Keep P1 HP between 50 (0x32) and 99 (0x63) - game can heal/damage within range.
+B832|00|HP Range Lock 50-99 (P1)|8|set|0|1|0|Player 1|1||0|0||1|32|63
+
+# ===== Game Genie Codes (EMU handler) =====
+0000|00|Infinite Fighters (Game Genie)|8|set|0|0|0|Game Genie|0|AT4A-AA48|0|0||0|0|0
+0000|00|Infinite Specials (Game Genie)|8|set|0|0|0|Game Genie|0|RFAA-A6VR|0|0||0|0|0
+0000|00|Infinite Life Gauge (Game Genie)|8|set|0|0|0|Game Genie|0|AJ4T-AA34|0|0||0|0|0</code></pre>
+
+<!-- ================================================================ -->
+<h2 id="bookmarks">17. Bookmarks File (.bookmarks)</h2>
+<p>Alongside each <code>.cfg</code> file, Quick Cheat may create a <code>.bookmarks</code> sidecar file. This file stores saved memory addresses for quick access in the Memory Tools tab. The format is simple:</p>
+
+<pre><code># Quick Cheat Bookmarks
+B832|3|Player 1 Health
+FF21|3|Player 1 Lives
+FF08|4|Score High
+FB00|16|Stage Time</code></pre>
+
+<h3>Bookmark Fields</h3>
+<table>
+<tr><th>#</th><th>Field</th><th>Type</th><th>Description</th></tr>
+<tr><td>1</td><td><code>address</code></td><td>hex</td><td>Memory address (hex, no <code>0x</code> prefix)</td></tr>
+<tr><td>2</td><td><code>size</code></td><td>int</td><td>8, 16, or 32 (same encoding as cheats)</td></tr>
+<tr><td>3</td><td><code>label</code></td><td>string</td><td>Free-form label for the bookmark (not escaped &mdash; no pipes allowed)</td></tr>
+</table>
+
+<div class="note">
+<strong>Automatic management:</strong> Bookmarks are saved and loaded automatically with the config file. You normally create them via the Bookmark button in the Memory Tools tab. The maximum is 32 bookmarks per game. You can edit the <code>.bookmarks</code> file by hand, but close the Quick Cheat popup first to avoid your changes being overwritten.
+</div>
+
+<!-- ================================================================ -->
+<h2 id="manual">18. Writing .cfg Files by Hand</h2>
+<p>You can create a <code>.cfg</code> file from scratch using any text editor. Here's the step-by-step process:</p>
+
+<ol>
+<li><strong>Close the Quick Cheat popup</strong> if it is open &mdash; Quick Cheat auto-saves on close and would overwrite your edits.</li>
+<li>Find the correct path: <code>&lt;RetroArch_dir&gt;/quick_cheat_profiles/&lt;core_name&gt;/&lt;rom_name&gt;.cfg</code>. Create the directories if they don't exist.</li>
+<li>Create a new text file with the <code>.cfg</code> extension at that path.</li>
+<li>Add a header comment: <code># RA-BP Quick Cheat Config v2.2</code></li>
+<li>(Optional) Add a <code>[settings]</code> section with window preferences. You can skip this entirely if you want.</li>
+<li>Add a <code>[cheats]</code> section header.</li>
+<li>Add one line per cheat, using the 17-field pipe-separated format.</li>
+<li>Save the file as plain text (UTF-8 encoding, no BOM).</li>
+<li>Open the Quick Cheat popup (Numpad 0) &mdash; your cheats will load automatically.</li>
+</ol>
+
+<h3>Minimal Template (Copy &amp; Modify)</h3>
+<pre><code># RA-BP Quick Cheat Config v2.2
+
+[cheats]
+# addr|val|desc|size|type|enabled|freeze|bigendian|group|handler|code|hotkey
+B832|50|Infinite HP|8|set|1|1|0|Player 1|1||0
+FF21|09|Infinite Lives|8|set|1|1|0|Player 1|1||0</code></pre>
+
+<div class="note-yellow">
+<strong>Only 12 fields are required.</strong> Fields 13&ndash;17 (timing, notes, range_lock, range_min, range_max) are optional. If you omit them, Quick Cheat uses defaults (timing=0, empty notes, range_lock=0). The minimal format is just the first 12 fields. Old v2.0 cheat files with 12 fields still work perfectly in v3.6.
+</div>
+
+<h3>Hex Address Cheat Sheet</h3>
+<p>Remember: in <code>.cfg</code> files, addresses and values are <strong>hexadecimal without the 0x prefix</strong>. Here are common conversions for Streets of Rage (Genesis):</p>
+<table>
+<tr><th>Address (hex)</th><th>What it is</th><th>Typical value (hex)</th></tr>
+<tr><td><code>B832</code></td><td>Player 1 Health</td><td><code>50</code> (decimal 80) or <code>63</code> (decimal 99)</td></tr>
+<tr><td><code>FF21</code></td><td>Player 1 Lives</td><td><code>09</code></td></tr>
+<tr><td><code>FF20</code></td><td>Player 1 Specials</td><td><code>09</code></td></tr>
+<tr><td><code>FF02</code></td><td>Stage ID (0&ndash;7)</td><td><code>00</code>&ndash;<code>07</code></td></tr>
+<tr><td><code>FFC6</code></td><td>Difficulty (0&ndash;3)</td><td><code>00</code>&ndash;<code>03</code></td></tr>
+<tr><td><code>FB01</code></td><td>Time Remaining (secs)</td><td><code>63</code> (decimal 99)</td></tr>
+<tr><td><code>B932</code></td><td>Enemy 1 Health (boss)</td><td><code>00</code> (kill)</td></tr>
+<tr><td><code>BB31</code></td><td>Mr. X Defeat flag</td><td><code>0E</code> (defeated)</td></tr>
+</table>
+
+<h3>Converting from RetroArch .cht to .cfg</h3>
+<p>If you have a <code>.cht</code> file and want to convert it to <code>.cfg</code> format:</p>
+<ol>
+<li>Take the decimal <code>address</code> from the <code>.cht</code> and convert to hex (e.g. <code>47154</code> &rarr; <code>B832</code>).</li>
+<li>Take the decimal <code>value</code> and convert to hex (e.g. <code>99</code> &rarr; <code>63</code>).</li>
+<li>Convert the <code>memory_search_size</code> code to a bit count: 3&rarr;8, 4&rarr;16, 5&rarr;32.</li>
+<li>Convert the <code>cheat_type</code> code to a keyword: 1&rarr;set, 2&rarr;inc, 3&rarr;dec, 4&rarr;eq, 5&rarr;neq, 6&rarr;lt, 7&rarr;gt.</li>
+<li>Convert <code>handler</code> (same numbering: 0=EMU, 1=RETRO).</li>
+<li>Convert <code>big_endian</code> true/false to 1/0.</li>
+<li>Convert <code>enable</code> true/false to 1/0.</li>
+<li>Map <code>freeze</code> to 1 if the cheat is a "Set Value" that should re-apply every frame (in <code>.cht</code>, all enabled cheats freeze; in <code>.cfg</code> you choose).</li>
+<li>Assemble: <code>addr|val|desc|size|type|enabled|freeze|bigendian|group|handler|code|hotkey</code></li>
+</ol>
+
+<div class="note">
+<strong>Tip:</strong> Quick Cheat has built-in <strong>Import .cht</strong> and <strong>Export .cht</strong> buttons that do this conversion automatically. Use them if you have a large <code>.cht</code> file &mdash; no need to convert by hand.
+</div>
+
+<!-- ================================================================ -->
+<h2 id="troubleshooting">19. Troubleshooting</h2>
+
+<h3>My .cfg file doesn't load</h3>
+<ul>
+<li>Make sure the file is at the correct path: <code>&lt;RetroArch_dir&gt;/quick_cheat_profiles/&lt;core_name&gt;/&lt;rom_name&gt;.cfg</code></li>
+<li>Check that the core name and ROM name match exactly (including capitalization and spacing)</li>
+<li>Close and reopen the Quick Cheat popup &mdash; it only loads the file on open</li>
+<li>Check <code>quick_cheat_log.txt</code> in the RetroArch directory for error messages</li>
+<li>Make sure the file is plain text (UTF-8), not a Word document or rich text</li>
+</ul>
+
+<h3>Cheat doesn't work</h3>
+<ul>
+<li>Verify the address is correct &mdash; in <code>.cfg</code> files, addresses are <strong>hex</strong> (e.g. <code>B832</code>), not decimal</li>
+<li>Check the <code>enabled</code> field is <code>1</code></li>
+<li>For freeze cheats, check <code>freeze=1</code></li>
+<li>For one-shot cheats, press <strong>Apply</strong> or the assigned hotkey &mdash; they don't apply automatically</li>
+<li>Try toggling <code>bigendian</code> (especially for 16-bit/32-bit cheats on Genesis)</li>
+<li>Make sure <code>handler=1</code> for memory-write cheats (RETRO)</li>
+<li>Check that <code>size</code> matches the data (8 for most values, 16 for scores, 32 for large)</li>
+</ul>
+
+<h3>Game crashes when cheat is enabled</h3>
+<ul>
+<li>The address might be wrong &mdash; writing to the wrong address can crash the game</li>
+<li>Try a smaller value</li>
+<li>Disable other cheats to check for conflicts</li>
+<li>If using a freeze cheat on an address the game also writes to, try <code>timing=2</code> or higher to reduce write frequency</li>
+</ul>
+
+<h3>Game Genie / GameShark code doesn't work</h3>
+<ul>
+<li>Make sure <code>handler=0</code> (EMU) and the code is in the <code>code</code> field</li>
+<li>Not all cores support EMU codes &mdash; check the core's documentation</li>
+<li>Make sure the code is entered correctly (Game Genie: <code>XXXX-XXXX</code> with a dash)</li>
+<li>For multi-code cheats, join codes with <code>+</code>: <code>RGMA-C6VC+XGMA-DA3E</code></li>
+<li>Try the equivalent RETRO cheat (using code notes) instead</li>
+</ul>
+
+<h3>Multi-write cheat only writes to one address</h3>
+<ul>
+<li>Check that addresses are separated by semicolons <code>;</code> with no spaces: <code>B932;B9B5;BA32</code></li>
+<li>If using per-write values, make sure the count matches (or use a single value to broadcast)</li>
+<li>Maximum is 16 writes per cheat &mdash; split into multiple cheats if you need more</li>
+</ul>
+
+<h3>Hotkey doesn't fire</h3>
+<ul>
+<li>Make sure <code>enabled=1</code> &mdash; disabled cheats don't fire on hotkey</li>
+<li>Check the <code>hotkey</code> field is in range 1&ndash;27</li>
+<li>Make sure Num Lock is on (Numpad keys may not register otherwise)</li>
+<li>Check that no two cheats share the same hotkey unless you want them to fire together</li>
+<li>Numpad 0, Ctrl+Num0, and Alt+Num0 are reserved &mdash; don't use hotkey 0 expecting them to fire a cheat</li>
+</ul>
+
+<h3>Value range lock isn't clamping</h3>
+<ul>
+<li>Check <code>range_lock=1</code> and <code>freeze=1</code> (range lock only works for freeze cheats)</li>
+<li>Make sure <code>range_min</code> and <code>range_max</code> are in <strong>hex</strong> (e.g. <code>32</code> for decimal 50)</li>
+<li>Verify <code>range_min</code> &le; <code>range_max</code></li>
+<li>Range lock reads the <em>first</em> write's address &mdash; for multi-write cheats, only write[0] is range-locked</li>
+</ul>
+
+<h3>Window position or size is wrong</h3>
+<ul>
+<li>Edit the <code>[settings]</code> section: <code>x</code>, <code>y</code>, <code>w</code>, <code>h</code></li>
+<li>Window size is capped at 65% screen width / 75% screen height &mdash; very large values are clamped</li>
+<li>Delete the <code>[settings]</code> section entirely to reset to defaults</li>
+</ul>
+
+<hr style="border: 0; border-top: 1px solid var(--border); margin: 32px 0;">
+
+<p style="text-align: center; color: var(--text-dim);">
+  RA-BP Quick Cheat &mdash; <a href="index.html">Back to Editor</a> &mdash; <a href="guide.html">.cht Guide (RetroArch)</a><br>
+  This guide covers the Quick Cheat <code>.cfg</code> format as of v3.6.0.<br>
+  The <code>[settings]</code> section is optional &mdash; a <code>.cfg</code> file with only <code>[cheats]</code> is perfectly valid.
+</p>
+
+</body>
+</html>

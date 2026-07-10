@@ -1,0 +1,742 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RA CHT Editor — Guide</title>
+<style>
+:root {
+  --green: #00AA00;
+  --green-dark: #008800;
+  --green-light: #00FF00;
+  --bg: #1a1a1a;
+  --bg-card: #2a2a2a;
+  --bg-input: #333333;
+  --text: #ffffff;
+  --text-dim: #888888;
+  --border: #444444;
+  --yellow: #FFD700;
+  --red: #ff4444;
+  --blue: #4DA6FF;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.6;
+  padding: 12px;
+  max-width: 900px;
+  margin: 0 auto;
+}
+h1 { color: var(--green-light); font-size: 1.6em; margin-bottom: 4px; }
+h2 { color: var(--yellow); font-size: 1.3em; margin-top: 32px; margin-bottom: 12px; border-bottom: 1px solid var(--border); padding-bottom: 6px; }
+h3 { color: var(--blue); font-size: 1.1em; margin-top: 20px; margin-bottom: 8px; }
+h4 { color: var(--text); font-size: 1.0em; margin-top: 16px; margin-bottom: 6px; }
+p { margin-bottom: 10px; }
+a { color: var(--blue); }
+a:hover { text-decoration: underline; }
+ul, ol { margin-bottom: 12px; padding-left: 24px; }
+li { margin-bottom: 6px; }
+code {
+  background: var(--bg-input);
+  color: var(--green-light);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-family: 'Courier New', monospace;
+  font-size: 0.9em;
+}
+pre {
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 14px;
+  overflow-x: auto;
+  margin-bottom: 14px;
+}
+pre code {
+  background: none;
+  padding: 0;
+  color: var(--text);
+  font-size: 0.85em;
+  line-height: 1.5;
+}
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 16px;
+  font-size: 0.85em;
+}
+th {
+  background: var(--bg-input);
+  color: var(--green-light);
+  padding: 8px 12px;
+  text-align: left;
+  border: 1px solid var(--border);
+}
+td {
+  padding: 6px 12px;
+  border: 1px solid var(--border);
+  vertical-align: top;
+}
+tr:nth-child(even) td { background: rgba(255,255,255,0.02); }
+.note {
+  background: rgba(0,170,0,0.1);
+  border-left: 3px solid var(--green);
+  padding: 10px 14px;
+  margin-bottom: 14px;
+  border-radius: 0 6px 6px 0;
+}
+.note-yellow {
+  background: rgba(255,215,0,0.1);
+  border-left: 3px solid var(--yellow);
+  padding: 10px 14px;
+  margin-bottom: 14px;
+  border-radius: 0 6px 6px 0;
+}
+.note-red {
+  background: rgba(255,68,68,0.1);
+  border-left: 3px solid var(--red);
+  padding: 10px 14px;
+  margin-bottom: 14px;
+  border-radius: 0 6px 6px 0;
+}
+.btn {
+  display: inline-block;
+  background: var(--green-dark);
+  color: var(--text);
+  border: 1px solid var(--green);
+  padding: 8px 20px;
+  border-radius: 6px;
+  text-decoration: none;
+  font-size: 0.9em;
+  margin: 8px 0;
+}
+.btn:hover { background: var(--green); }
+.subtitle { color: var(--text-dim); font-size: 0.85em; margin-bottom: 20px; }
+.toc {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 16px 20px;
+  margin-bottom: 24px;
+}
+.toc-title { color: var(--yellow); font-weight: bold; margin-bottom: 8px; }
+.toc ul { list-style: none; padding-left: 0; }
+.toc a { color: var(--blue); text-decoration: none; }
+.toc a:hover { text-decoration: underline; }
+</style>
+</head>
+<body>
+
+<h1>RetroArch Cheat File Guide</h1>
+<div class="subtitle">Complete guide to understanding, creating, and editing <code>.cht</code> files for RetroArch</div>
+
+<a href="index.html" class="btn">&larr; Back to Editor</a>
+<a href="cfg-guide.html" class="btn">.cfg Guide (Quick Cheat) &rarr;</a>
+
+<div class="toc">
+  <div class="toc-title">Table of Contents</div>
+  <ul>
+    <li><a href="#what-is-cht">1. What is a .cht file?</a></li>
+    <li><a href="#format">2. The .cht File Format</a></li>
+    <li><a href="#fields">3. Field Reference</a></li>
+    <li><a href="#cheat-types">4. Cheat Types Explained</a></li>
+    <li><a href="#handlers">5. Handlers: RETRO vs EMU</a></li>
+    <li><a href="#memory-sizes">6. Memory Search Sizes</a></li>
+    <li><a href="#endian">7. Endianness</a></li>
+    <li><a href="#repeat">8. Repeat (Multi-Address Cheats)</a></li>
+    <li><a href="#code-notes">9. Using RetroAchievements Code Notes</a></li>
+    <li><a href="#game-genie">10. Using Game Genie / GameShark Codes</a></li>
+    <li><a href="#example">11. Complete Example: Streets of Rage</a></li>
+    <li><a href="#manual">12. Writing .cht Files by Hand</a></li>
+    <li><a href="#loading">13. Loading Cheats in RetroArch</a></li>
+    <li><a href="#troubleshooting">14. Troubleshooting</a></li>
+  </ul>
+</div>
+
+<!-- ================================================================ -->
+<h2 id="what-is-cht">1. What is a .cht file?</h2>
+<p>A <code>.cht</code> file is a plain-text file that RetroArch uses to store cheat codes for a specific game. Each file contains one or more cheat entries that can modify the game's memory in real-time — giving you infinite health, infinite lives, level select, and more.</p>
+
+<p>Cheat files are loaded by RetroArch's built-in <strong>Cheat Manager</strong>. Once loaded, you can toggle individual cheats on or off from the in-game menu.</p>
+
+<div class="note">
+<strong>Key points:</strong>
+<ul>
+<li>Files are plain text — you can open them in any text editor</li>
+<li>One file per game, named after the game's ROM hash or a descriptive name</li>
+<li>Format is INI-style: <code>key = value</code> pairs</li>
+<li>Each cheat has a numbered prefix (cheat0_, cheat1_, cheat2_...)</li>
+<li>Values can be decimal numbers, strings, or booleans (true/false)</li>
+</ul>
+</div>
+
+<!-- ================================================================ -->
+<h2 id="format">2. The .cht File Format</h2>
+<p>Here's the basic structure of a .cht file:</p>
+
+<pre><code># This is a comment. Lines starting with # are ignored.
+
+cheats = 2
+
+cheat0_desc = "Infinite Health"
+cheat0_address = 47154
+cheat0_value = 99
+cheat0_cheat_type = 1
+cheat0_memory_search_size = 3
+cheat0_handler = 1
+cheat0_enable = true
+cheat0_big_endian = false
+cheat0_address_bit_position = 0
+cheat0_repeat_count = 1
+cheat0_repeat_add_to_value = 0
+cheat0_repeat_add_to_address = 1
+cheat0_code = ""
+cheat0_rumble_type = 0
+cheat0_rumble_value = 0
+cheat0_rumble_port = 0
+cheat0_rumble_primary_strength = 0
+cheat0_rumble_primary_duration = 0
+cheat0_rumble_secondary_strength = 0
+cheat0_rumble_secondary_duration = 0
+
+cheat1_desc = "Infinite Lives"
+cheat1_address = 65313
+cheat1_value = 9
+cheat1_cheat_type = 1
+cheat1_memory_search_size = 3
+cheat1_handler = 1
+cheat1_enable = true
+... (same fields as cheat0, but with cheat1_ prefix)</code></pre>
+
+<div class="note-yellow">
+<strong>Important:</strong> The first line <code>cheats = N</code> tells RetroArch how many cheats to load. Each cheat then uses the prefix <code>cheatN_</code> where N is the index (starting from 0).
+</div>
+
+<!-- ================================================================ -->
+<h2 id="fields">3. Field Reference</h2>
+<p>Each cheat entry has the following fields. Most are optional — RetroArch uses default values if a field is missing.</p>
+
+<table>
+<tr><th>Field</th><th>Type</th><th>Default</th><th>Description</th></tr>
+<tr><td><code>desc</code></td><td>string</td><td>""</td><td>Human-readable description shown in the cheat menu</td></tr>
+<tr><td><code>code</code></td><td>string</td><td>""</td><td>Emulator-specific code (Game Genie, GameShark, etc.) — used when handler=0</td></tr>
+<tr><td><code>enable</code></td><td>bool</td><td>false</td><td>Whether the cheat is active (enabled) when loaded</td></tr>
+<tr><td><code>big_endian</code></td><td>bool</td><td>false</td><td>Byte order for multi-byte values (see Endianness section)</td></tr>
+<tr><td><code>handler</code></td><td>int</td><td>1</td><td>0 = EMU (emulator code), 1 = RETRO (memory write)</td></tr>
+<tr><td><code>memory_search_size</code></td><td>int</td><td>3</td><td>Bit width: 0=1-bit, 1=2-bit, 2=4-bit, 3=8-bit, 4=16-bit, 5=32-bit</td></tr>
+<tr><td><code>cheat_type</code></td><td>int</td><td>1</td><td>What the cheat does: 1=Set, 2=Inc, 3=Dec, 4-7=Conditional</td></tr>
+<tr><td><code>value</code></td><td>int</td><td>0</td><td>The value to write (decimal, not hex!)</td></tr>
+<tr><td><code>address</code></td><td>int</td><td>0</td><td>Memory address to write to (decimal, not hex!)</td></tr>
+<tr><td><code>address_bit_position</code></td><td>int</td><td>0</td><td>For 1/2/4-bit cheats: which bit(s) to modify (0-7)</td></tr>
+<tr><td><code>repeat_count</code></td><td>int</td><td>1</td><td>How many times to repeat the write (for multi-address cheats)</td></tr>
+<tr><td><code>repeat_add_to_value</code></td><td>int</td><td>0</td><td>Amount added to value on each repeat</td></tr>
+<tr><td><code>repeat_add_to_address</code></td><td>int</td><td>1</td><td>Address offset added on each repeat (in memory_search_size blocks)</td></tr>
+<tr><td><code>rumble_*</code></td><td>int</td><td>0</td><td>Rumble feedback settings (usually left at 0)</td></tr>
+</table>
+
+<div class="note-red">
+<strong>Critical:</strong> <code>address</code> and <code>value</code> are in <strong>DECIMAL</strong>, not hex! If a code note says address <code>0xB832</code>, you must convert it: 0xB832 = 47154 in decimal.
+</div>
+
+<!-- ================================================================ -->
+<h2 id="cheat-types">4. Cheat Types Explained</h2>
+<p>The <code>cheat_type</code> field controls what happens when the cheat is enabled:</p>
+
+<table>
+<tr><th>Value</th><th>Name</th><th>Description</th></tr>
+<tr><td>0</td><td>Disabled</td><td>Cheat does nothing</td></tr>
+<tr><td>1</td><td>Set Value</td><td>Writes <code>value</code> to <code>address</code> every frame. This is the most common type — it "locks" a value (e.g. infinite health)</td></tr>
+<tr><td>2</td><td>Increase</td><td>Adds <code>value</code> to the current value at <code>address</code> every frame. Use with caution — values increase rapidly!</td></tr>
+<tr><td>3</td><td>Decrease</td><td>Subtracts <code>value</code> from the current value every frame</td></tr>
+<tr><td>4</td><td>If Equal</td><td>Conditional: if current value == <code>value</code>, execute the next cheat in the list</td></tr>
+<tr><td>5</td><td>If Not Equal</td><td>Conditional: if current value != <code>value</code>, execute next cheat</td></tr>
+<tr><td>6</td><td>If Less Than</td><td>Conditional: if current value &lt; <code>value</code>, execute next cheat</td></tr>
+<tr><td>7</td><td>If Greater Than</td><td>Conditional: if current value &gt; <code>value</code>, execute next cheat</td></tr>
+</table>
+
+<div class="note-yellow">
+<strong>When to use each type:</strong>
+<ul>
+<li><strong>Set Value (1)</strong>: Infinite health, infinite lives, infinite ammo, unlock characters, freeze timer</li>
+<li><strong>Increase (2)</strong>: Add points to score (rarely used)</li>
+<li><strong>Decrease (3)</strong>: Reduce enemy health (rarely used)</li>
+<li><strong>Conditionals (4-7)</strong>: Advanced multi-step cheats. For example: "If boss health &lt; 50, then set boss health to 0"</li>
+</ul>
+</div>
+
+<p>For conditionals, the "next cheat" is simply the cheat with the next index. For example, if <code>cheat0</code> is "If Equal" and its condition is met, <code>cheat1</code> will be executed. If the condition is NOT met, <code>cheat1</code> is skipped.</p>
+
+<!-- ================================================================ -->
+<h2 id="handlers">5. Handlers: RETRO vs EMU</h2>
+<p>RetroArch supports two ways to apply cheats:</p>
+
+<h3>RETRO Handler (handler = 1)</h3>
+<p>This is the default and most common. RetroArch directly reads/writes the core's memory. You specify a memory <code>address</code> and a <code>value</code> to write there.</p>
+<p>Most cheats you create from code notes will use this handler.</p>
+
+<h3>EMU Handler (handler = 0)</h3>
+<p>This uses emulator-specific cheat code formats like Game Genie, GameShark, Pro Action Replay, etc. The code is stored in the <code>code</code> field as a string.</p>
+<p>The core's emulator must support the code format for this to work. For Genesis/Mega Drive, Game Genie codes are supported by most cores (like Genesis Plus GX).</p>
+
+<div class="note">
+<strong>Example EMU cheat:</strong>
+<pre><code>cheat0_desc = "Infinite fighters for both players"
+cheat0_code = "AT4A-AA48"
+cheat0_handler = 0
+cheat0_enable = true</code></pre>
+Note: when using EMU handler, <code>address</code>, <code>value</code>, and <code>memory_search_size</code> are ignored.
+</div>
+
+<!-- ================================================================ -->
+<h2 id="memory-sizes">6. Memory Search Sizes</h2>
+<p>The <code>memory_search_size</code> field tells RetroArch how many bits to read/write at the specified address:</p>
+
+<table>
+<tr><th>Value</th><th>Size</th><th>Range</th><th>Use When</th></tr>
+<tr><td>0</td><td>1-bit</td><td>0-1</td><td>Boolean flags (on/off, alive/dead)</td></tr>
+<tr><td>1</td><td>2-bit</td><td>0-3</td><td>Small enumerations</td></tr>
+<tr><td>2</td><td>4-bit</td><td>0-15</td><td>Nibbles, small counters</td></tr>
+<tr><td>3</td><td>8-bit</td><td>0-255</td><td><strong>Most common!</strong> Health, lives, items, level numbers</td></tr>
+<tr><td>4</td><td>16-bit</td><td>0-65535</td><td>Score, large counters, pairs of bytes</td></tr>
+<tr><td>5</td><td>32-bit</td><td>0-4294967295</td><td>Very large values (rare on older consoles)</td></tr>
+</table>
+
+<div class="note-yellow">
+<strong>For 1-bit, 2-bit, and 4-bit sizes:</strong> You must also set <code>address_bit_position</code> (0-7) to specify which bit(s) within the byte to modify. For 8-bit and larger, this is always 0.
+</div>
+
+<!-- ================================================================ -->
+<h2 id="endian">7. Endianness</h2>
+<p>Some consoles store multi-byte values in "big-endian" order (most significant byte first), while others use "little-endian" (least significant byte first).</p>
+
+<table>
+<tr><th>Console</th><th>Endianness</th><th>Set <code>big_endian</code> to</th></tr>
+<tr><td>Sega Genesis/Mega Drive (68000)</td><td>Big-endian</td><td><code>true</code></td></tr>
+<tr><td>NES</td><td>Little-endian</td><td><code>false</code></td></tr>
+<tr><td>SNES</td><td>Little-endian (usually)</td><td><code>false</code></td></tr>
+<tr><td>Game Boy / GBA</td><td>Little-endian</td><td><code>false</code></td></tr>
+<tr><td>PlayStation</td><td>Little-endian</td><td><code>false</code></td></tr>
+</table>
+
+<div class="note">
+<strong>When does this matter?</strong> Only for 16-bit and 32-bit cheats. For 8-bit and smaller, endianness doesn't matter. If your 16-bit cheat doesn't work, try toggling <code>big_endian</code>.
+</div>
+
+<!-- ================================================================ -->
+<h2 id="repeat">8. Repeat (Multi-Address Cheats)</h2>
+<p>Sometimes you want to write the same value to multiple consecutive addresses — for example, setting all enemy health values to 0 at once. The repeat fields let you do this with a single cheat entry.</p>
+
+<ul>
+<li><code>repeat_count</code>: How many times to write (default: 1)</li>
+<li><code>repeat_add_to_value</code>: How much to add to the value after each write (default: 0)</li>
+<li><code>repeat_add_to_address</code>: How many <em>data blocks</em> to skip forward in memory after each write (default: 1)</li>
+</ul>
+
+<div class="note-yellow">
+<strong>Example:</strong> Setting 7 enemy health addresses to 0, where each enemy's health is stored 128 bytes apart:
+<pre><code>cheat0_desc = "Kill All Enemies"
+cheat0_address = 47410        # First enemy's health address
+cheat0_value = 0
+cheat0_cheat_type = 1
+cheat0_memory_search_size = 3  # 8-bit
+cheat0_repeat_count = 7        # Write to 7 addresses
+cheat0_repeat_add_to_value = 0 # Same value (0) each time
+cheat0_repeat_add_to_address = 128 # Skip 128 bytes between enemies</code></pre>
+</div>
+
+<p>Note: <code>repeat_add_to_address</code> is measured in <em>data blocks</em>, not bytes. For 8-bit (memory_search_size=3), one block = 1 byte. For 16-bit (memory_search_size=4), one block = 2 bytes. For 32-bit (memory_search_size=5), one block = 4 bytes.</p>
+
+<!-- ================================================================ -->
+<h2 id="code-notes">9. Using RetroAchievements Code Notes</h2>
+<p>RetroAchievements maintains "code notes" for many games — these are documented memory addresses discovered by the community. They're the best source for creating cheats.</p>
+
+<h3>How to Read Code Notes</h3>
+<p>A code note looks like this:</p>
+<pre><code>0xb832    Player 1's Health</code></pre>
+
+<p>This means:
+<ul>
+<li>The memory address is <code>0xB832</code> (hexadecimal)</li>
+<li>The value at this address represents Player 1's health</li>
+<li>To create an "Infinite Health" cheat, you would <strong>set</strong> this address to a high value (like 99) every frame</li>
+</ul>
+</p>
+
+<h3>Converting Hex to Decimal</h3>
+<p>Cheat files require <strong>decimal</strong> addresses and values. You must convert hex to decimal:</p>
+
+<table>
+<tr><th>Hex Address</th><th>Decimal Address</th><th>What It Is (Streets of Rage)</th></tr>
+<tr><td>0xB832</td><td>47154</td><td>Player 1's Health</td></tr>
+<tr><td>0xFF21</td><td>65313</td><td>Player 1's Lives Remaining</td></tr>
+<tr><td>0xFF20</td><td>65312</td><td>Player 1's Specials Remaining</td></tr>
+<tr><td>0xFF1F</td><td>65311</td><td>Player 1's Character (0=Axel, 1=Adam, 2=Blaze)</td></tr>
+<tr><td>0xFFC6</td><td>65478</td><td>Difficulty (0=Easy, 1=Normal, 2=Hard, 3=Hardest)</td></tr>
+<tr><td>0xFF02</td><td>65282</td><td>Stage ID (0=Stage 1 ... 7=Stage 8)</td></tr>
+<tr><td>0xFB01</td><td>64257</td><td>Time Remaining (seconds)</td></tr>
+<tr><td>0xB932</td><td>47410</td><td>Enemy 1 Health (boss slot)</td></tr>
+<tr><td>0xBB31</td><td>47857</td><td>Mr. X Defeat flag (0x05=alive, 0x0E=defeated)</td></tr>
+<tr><td>0xFA78</td><td>64120</td><td>Boss complete flag (=01)</td></tr>
+<tr><td>0xFF06</td><td>65286</td><td>Level Complete flag (=04)</td></tr>
+</table>
+
+<h3>Step-by-Step: Creating a Cheat from a Code Note</h3>
+<ol>
+<li>Find the code note you want (e.g. "0xB832 = Player 1's Health")</li>
+<li>Convert the hex address to decimal: 0xB832 = 47154</li>
+<li>Decide what value to set (e.g. 99 for near-full health)</li>
+<li>Convert the value to decimal if it's in hex (99 decimal = 99, 0x63 = 99)</li>
+<li>Determine the data size — health is usually 8-bit (0-255), so memory_search_size = 3</li>
+<li>Determine endianness — Genesis is big-endian, so big_endian = true</li>
+<li>Create the cheat entry</li>
+</ol>
+
+<p>Result:</p>
+<pre><code>cheat0_desc = "Infinite Health (P1)"
+cheat0_address = 47154
+cheat0_value = 99
+cheat0_cheat_type = 1
+cheat0_memory_search_size = 3
+cheat0_handler = 1
+cheat0_enable = true
+cheat0_big_endian = true
+cheat0_address_bit_position = 0
+cheat0_repeat_count = 1
+cheat0_repeat_add_to_value = 0
+cheat0_repeat_add_to_address = 1
+cheat0_code = ""</code></pre>
+
+<h3>Streets of Rage — Full Code Notes Reference</h3>
+<p>Here are all 78 code notes for Streets of Rage (Genesis/Mega Drive). The "Hex" column is the address as shown on RetroAchievements. The "Decimal" column is what you put in the .cht file.</p>
+
+<table>
+<tr><th>Hex</th><th>Decimal</th><th>Description</th><th>Size</th><th>Suggested Cheat</th></tr>
+<tr><td>0xB807</td><td>47111</td><td>Telephone booth broken (183)</td><td>8-bit</td><td>—</td></tr>
+<tr><td>0xB810</td><td>47120</td><td>X Scroll</td><td>16-bit</td><td>—</td></tr>
+<tr><td>0xB814</td><td>47124</td><td>Y Scroll</td><td>16-bit</td><td>—</td></tr>
+<tr><td>0xB830</td><td>47152</td><td>P1 Animation State</td><td>8-bit</td><td>—</td></tr>
+<tr><td>0xB831</td><td>47153</td><td>Movement flag</td><td>8-bit</td><td>—</td></tr>
+<tr><td>0xB832</td><td>47154</td><td><strong>P1 Health</strong></td><td>8-bit</td><td>Set to 99 (0x63)</td></tr>
+<tr><td>0xB835</td><td>47157</td><td>General Moves (punch=01, etc.)</td><td>8-bit</td><td>—</td></tr>
+<tr><td>0xB851</td><td>47185</td><td>Title/Demo=00, In-game=01</td><td>8-bit</td><td>—</td></tr>
+<tr><td>0xB85B</td><td>47195</td><td>Step counter</td><td>8-bit</td><td>—</td></tr>
+<tr><td>0xB861</td><td>47201</td><td>Weapon (0A=bat, 0B=pipe, 08=knife, 09=bottle)</td><td>8-bit</td><td>Set to 0x0A for bat</td></tr>
+<tr><td>0xB8B2</td><td>47282</td><td><strong>P2 Health</strong></td><td>8-bit</td><td>Set to 99</td></tr>
+<tr><td>0xB932</td><td>47410</td><td><strong>Enemy 1 Health (boss)</strong></td><td>8-bit</td><td>Set to 0 (kill)</td></tr>
+<tr><td>0xB9B5</td><td>47541</td><td>Enemy 2 Health</td><td>8-bit</td><td>Set to 0 (kill)</td></tr>
+<tr><td>0xBA32</td><td>47666</td><td>Enemy 3 Health</td><td>8-bit</td><td>Set to 0 (kill)</td></tr>
+<tr><td>0xBAB2</td><td>47794</td><td>Enemy 6 Health</td><td>8-bit</td><td>Set to 0 (kill)</td></tr>
+<tr><td>0xBB32</td><td>47922</td><td>Enemy 4 Health</td><td>8-bit</td><td>Set to 0 (kill)</td></tr>
+<tr><td>0xBBB2</td><td>48050</td><td>Enemy 5 Health</td><td>8-bit</td><td>Set to 0 (kill)</td></tr>
+<tr><td>0xBCB2</td><td>48306</td><td>Enemy 8 Health</td><td>8-bit</td><td>Set to 0 (kill)</td></tr>
+<tr><td>0xBB31</td><td>47921</td><td><strong>Mr. X Defeat flag</strong> (0x05=alive, 0x0E=defeated)</td><td>8-bit</td><td>Set to 14 (0x0E)</td></tr>
+<tr><td>0xFA78</td><td>64120</td><td><strong>Boss complete</strong> (=01)</td><td>8-bit</td><td>Set to 1</td></tr>
+<tr><td>0xFA7A</td><td>64122</td><td>Cheat menu unlock (=01)</td><td>8-bit</td><td>Set to 1</td></tr>
+<tr><td>0xFB00</td><td>64256</td><td>Stage Time (16-bit)</td><td>16-bit</td><td>—</td></tr>
+<tr><td>0xFB01</td><td>64257</td><td><strong>Time Remaining (secs)</strong></td><td>8-bit</td><td>Set to 99</td></tr>
+<tr><td>0xF1F6</td><td>61878</td><td>Police called (=0x4817, 16-bit)</td><td>16-bit</td><td>Set to 18455 (0x4817)</td></tr>
+<tr><td>0xFF00</td><td>65280</td><td>Screen ID (0x16=in-game, 0x2A=stage intro)</td><td>8-bit</td><td>—</td></tr>
+<tr><td>0xFF02</td><td>65282</td><td><strong>Stage ID</strong> (0-7)</td><td>8-bit</td><td>Set to 7 for Stage 8</td></tr>
+<tr><td>0xFF04</td><td>65284</td><td>Stage Section (last boss=06)</td><td>8-bit</td><td>—</td></tr>
+<tr><td>0xFF06</td><td>65286</td><td><strong>Level Complete</strong> (=04)</td><td>8-bit</td><td>Set to 4</td></tr>
+<tr><td>0xFF08</td><td>65288</td><td>Score (high 16 bits)</td><td>16-bit</td><td>—</td></tr>
+<tr><td>0xFF0A</td><td>65290</td><td>Score (low 16 bits)</td><td>16-bit</td><td>—</td></tr>
+<tr><td>0xFF1A</td><td>65306</td><td>Continue Credits</td><td>8-bit</td><td>—</td></tr>
+<tr><td>0xFF1F</td><td>65311</td><td><strong>P1 Character</strong> (0=Axel, 1=Adam, 2=Blaze)</td><td>8-bit</td><td>Set to 0, 1, or 2</td></tr>
+<tr><td>0xFF20</td><td>65312</td><td><strong>P1 Specials Remaining</strong></td><td>8-bit</td><td>Set to 9</td></tr>
+<tr><td>0xFF21</td><td>65313</td><td><strong>P1 Lives Remaining</strong></td><td>8-bit</td><td>Set to 9</td></tr>
+<tr><td>0xFFC6</td><td>65478</td><td><strong>Difficulty</strong> (0=Easy, 1=Normal, 2=Hard, 3=Hardest)</td><td>8-bit</td><td>Set to 3</td></tr>
+</table>
+
+<div class="note">
+<strong>Tip:</strong> The RetroAchievements addressing scheme places system RAM at address $00000000, immediately followed by cartridge memory. The addresses shown above are RetroArch addresses, which may differ from real hardware addresses.
+</div>
+
+<!-- ================================================================ -->
+<h2 id="game-genie">10. Using Game Genie / GameShark Codes</h2>
+<p>Many classic consoles have their own cheat code formats. RetroArch can use these via the EMU handler (handler = 0). The code goes in the <code>code</code> field as a string.</p>
+
+<h3>Game Genie (Genesis/Mega Drive)</h3>
+<p>Genesis Game Genie codes look like <code>XXXX-XXXX</code> (8 characters with a dash). For example:</p>
+
+<pre><code>cheat0_desc = "Infinite fighters for both players"
+cheat0_code = "AT4A-AA48"
+cheat0_handler = 0
+cheat0_enable = true
+cheat0_memory_search_size = 0
+cheat0_cheat_type = 0
+cheat0_address = 0
+cheat0_value = 0</code></pre>
+
+<h3>Streets of Rage Game Genie Codes</h3>
+<p>Here are some known Game Genie codes for Streets of Rage (Genesis):</p>
+
+<table>
+<tr><th>#</th><th>Code</th><th>Effect</th></tr>
+<tr><td>1</td><td><code>AT4A-AA48</code></td><td>Infinite fighters for both players</td></tr>
+<tr><td>2</td><td><code>RFAA-A6VR</code></td><td>Infinite special attacks for both players</td></tr>
+<tr><td>3</td><td><code>AJ4T-AA34</code></td><td>Infinite life on life gauge — both players</td></tr>
+<tr><td>4</td><td><code>AEMT-BA7W</code></td><td>Start with 1 fighter instead of 3</td></tr>
+<tr><td>5</td><td><code>AYMT-BA7W</code></td><td>Start with 5 fighters</td></tr>
+<tr><td>6</td><td><code>A6MT-BA7W</code></td><td>Start with 7 fighters</td></tr>
+<tr><td>7</td><td><code>BEMT-BA7W</code></td><td>Start with 9 fighters</td></tr>
+<tr><td>8</td><td><code>ABBA-AAP4</code></td><td>Regular attacks are useless</td></tr>
+<tr><td>9</td><td><code>RGMA-C6VC + XGMA-DA3E</code></td><td>Start timer at 99</td></tr>
+<tr><td>10</td><td><code>RGMA-C6VC + E0MA-DA3E</code></td><td>Start timer at 25</td></tr>
+</table>
+
+<div class="note-yellow">
+<strong>Multi-code cheats:</strong> Some Game Genie cheats require multiple codes. Separate them with a <code>+</code> sign in the code field:
+<pre><code>cheat0_code = "RGMA-C6VC+XGMA-DA3E"</code></pre>
+</div>
+
+<h3>GameShark / Pro Action Replay</h3>
+<p>For other consoles (Game Boy, GBA, N64, PlayStation), the code format differs. GameShark codes typically look like <code>010138CD</code> (8 hex digits). Pro Action Replay codes are similar. Put them in the <code>code</code> field the same way.</p>
+
+<!-- ================================================================ -->
+<h2 id="example">11. Complete Example: Streets of Rage</h2>
+<p>Here's a complete .cht file with various cheat types for Streets of Rage:</p>
+
+<pre><code># RetroArch Cheat File - Streets of Rage (Genesis/Mega Drive)
+# All addresses are decimal (converted from hex code notes)
+
+cheats = 10
+
+# --- Infinite Resources (Set Value, enabled) ---
+
+cheat0_desc = "Infinite HP (P1)"
+cheat0_address = 47154
+cheat0_value = 99
+cheat0_cheat_type = 1
+cheat0_memory_search_size = 3
+cheat0_handler = 1
+cheat0_enable = true
+cheat0_big_endian = true
+cheat0_address_bit_position = 0
+cheat0_repeat_count = 1
+cheat0_repeat_add_to_value = 0
+cheat0_repeat_add_to_address = 1
+cheat0_code = ""
+
+cheat1_desc = "Infinite Lives (P1)"
+cheat1_address = 65313
+cheat1_value = 9
+cheat1_cheat_type = 1
+cheat1_memory_search_size = 3
+cheat1_handler = 1
+cheat1_enable = true
+cheat1_big_endian = true
+
+cheat2_desc = "Infinite Specials (P1)"
+cheat2_address = 65312
+cheat2_value = 9
+cheat2_cheat_type = 1
+cheat2_memory_search_size = 3
+cheat2_handler = 1
+cheat2_enable = true
+cheat2_big_endian = true
+
+# --- Kill Enemies (Set to 0) ---
+
+cheat3_desc = "Kill Enemy 1 (Boss)"
+cheat3_address = 47410
+cheat3_value = 0
+cheat3_cheat_type = 1
+cheat3_memory_search_size = 3
+cheat3_handler = 1
+cheat3_enable = false
+cheat3_big_endian = true
+
+# --- Stage Select (Set Value, disabled by default) ---
+
+cheat4_desc = "Stage Select: Stage 1"
+cheat4_address = 65282
+cheat4_value = 0
+cheat4_cheat_type = 1
+cheat4_memory_search_size = 3
+cheat4_handler = 1
+cheat4_enable = false
+cheat4_big_endian = true
+
+cheat5_desc = "Stage Select: Stage 8 (Final)"
+cheat5_address = 65282
+cheat5_value = 7
+cheat5_cheat_type = 1
+cheat5_memory_search_size = 3
+cheat5_handler = 1
+cheat5_enable = false
+cheat5_big_endian = true
+
+# --- Difficulty ---
+
+cheat6_desc = "Difficulty: Hardest"
+cheat6_address = 65478
+cheat6_value = 3
+cheat6_cheat_type = 1
+cheat6_memory_search_size = 3
+cheat6_handler = 1
+cheat6_enable = false
+cheat6_big_endian = true
+
+# --- Time Freeze ---
+
+cheat7_desc = "Time Freeze (99 secs)"
+cheat7_address = 64257
+cheat7_value = 99
+cheat7_cheat_type = 1
+cheat7_memory_search_size = 3
+cheat7_handler = 1
+cheat7_enable = false
+cheat7_big_endian = true
+
+# --- Game Genie Codes (EMU handler) ---
+
+cheat8_desc = "Infinite Fighters (Game Genie)"
+cheat8_code = "AT4A-AA48"
+cheat8_handler = 0
+cheat8_enable = false
+cheat8_memory_search_size = 0
+cheat8_cheat_type = 0
+cheat8_address = 0
+cheat8_value = 0
+
+cheat9_desc = "Infinite Specials (Game Genie)"
+cheat9_code = "RFAA-A6VR"
+cheat9_handler = 0
+cheat9_enable = false
+cheat9_memory_search_size = 0
+cheat9_cheat_type = 0
+cheat9_address = 0
+cheat9_value = 0</code></pre>
+
+<!-- ================================================================ -->
+<h2 id="manual">12. Writing .cht Files by Hand</h2>
+<p>You can create a .cht file from scratch using any text editor (Notepad, VS Code, etc.). Follow these steps:</p>
+
+<ol>
+<li>Create a new text file with a <code>.cht</code> extension (e.g. <code>streets_of_rage.cht</code>)</li>
+<li>Add a comment line: <code># My cheat file</code></li>
+<li>Add the cheat count: <code>cheats = 1</code></li>
+<li>For each cheat, add all required fields with the <code>cheatN_</code> prefix</li>
+<li>Save the file as plain text (UTF-8 encoding)</li>
+</ol>
+
+<div class="note-yellow">
+<strong>Minimal cheat template</strong> (copy and modify):
+<pre><code>cheats = 1
+
+cheat0_desc = "Your Cheat Description"
+cheat0_address = 0          # DECIMAL address (convert from hex!)
+cheat0_value = 0            # DECIMAL value (convert from hex!)
+cheat0_cheat_type = 1       # 1 = Set Value
+cheat0_memory_search_size = 3  # 3 = 8-bit
+cheat0_handler = 1          # 1 = RETRO (memory write)
+cheat0_enable = true        # true = enabled on load
+cheat0_big_endian = false   # true for Genesis, false for NES/SNES/GB
+cheat0_address_bit_position = 0
+cheat0_repeat_count = 1
+cheat0_repeat_add_to_value = 0
+cheat0_repeat_add_to_address = 1
+cheat0_code = ""</code></pre>
+</div>
+
+<h3>Hex to Decimal Conversion</h3>
+<p>You can convert hex to decimal using:</p>
+<ul>
+<li>Calculator app (switch to Programmer mode)</li>
+<li>Python: <code>int("B832", 16)</code> → <code>47154</code></li>
+<li>JavaScript console: <code>parseInt("B832", 16)</code> → <code>47154</code></li>
+<li>Online converter</li>
+</ul>
+
+<h3>Common Hex → Decimal Conversions for Streets of Rage</h3>
+<table>
+<tr><th>Hex</th><th>Decimal</th><th>Hex</th><th>Decimal</th><th>Hex</th><th>Decimal</th></tr>
+<tr><td>0x00</td><td>0</td><td>0x05</td><td>5</td><td>0x0E</td><td>14</td></tr>
+<tr><td>0x09</td><td>9</td><td>0x0A</td><td>10</td><td>0x3C</td><td>60</td></tr>
+<tr><td>0x3F</td><td>63</td><td>0x50</td><td>80</td><td>0x63</td><td>99</td></tr>
+<tr><td>0xFF</td><td>255</td><td>0x4817</td><td>18455</td><td>0x6300</td><td>25344</td></tr>
+</table>
+
+<!-- ================================================================ -->
+<h2 id="loading">13. Loading Cheats in RetroArch</h2>
+<ol>
+<li>Copy your <code>.cht</code> file to RetroArch's cheat directory:
+<ul>
+<li><strong>Windows:</strong> <code>C:\Users\YourName\AppData\Roaming\RetroArch\cheats\</code></li>
+<li><strong>Android:</strong> <code>/storage/emulated/0/RetroArch/cheats/</code></li>
+<li><strong>Linux:</strong> <code>~/.config/retroarch/cheats/</code></li>
+</ul>
+</li>
+<li>Start RetroArch and load your game</li>
+<li>Open the Quick Menu (press F1 or the menu button during gameplay)</li>
+<li>Select <strong>Cheats</strong></li>
+<li>Press <strong>Load Cheat File</strong> (or <strong>Load</strong>)</li>
+<li>Navigate to your <code>.cht</code> file and select it</li>
+<li>The cheats will appear in the list — toggle them on/off with the checkboxes</li>
+<li>Press <strong>Apply Cheat Changes</strong> to activate</li>
+<li>Return to the game — the cheats are now active!</li>
+</ol>
+
+<div class="note-yellow">
+<strong>Tip:</strong> If you don't see the cheat file, make sure:
+<ul>
+<li>The file has a <code>.cht</code> extension</li>
+<li>The file is in the correct cheats directory</li>
+<li>The file is plain text (not rich text or Word document)</li>
+<li>You're using a compatible core (e.g. Genesis Plus GX for Genesis games)</li>
+</ul>
+</div>
+
+<!-- ================================================================ -->
+<h2 id="troubleshooting">14. Troubleshooting</h2>
+
+<h3>Cheat doesn't work</h3>
+<ul>
+<li>Check that <code>address</code> and <code>value</code> are in <strong>decimal</strong>, not hex</li>
+<li>Verify the address is correct — double-check the hex-to-decimal conversion</li>
+<li>Try toggling <code>big_endian</code> (especially for 16-bit cheats on Genesis)</li>
+<li>Make sure <code>cheat_type</code> is 1 (Set Value) for most cheats</li>
+<li>Ensure <code>handler</code> is 1 (RETRO) for memory-write cheats</li>
+<li>Check that <code>memory_search_size</code> matches the data type (usually 3 for 8-bit)</li>
+</ul>
+
+<h3>Game crashes when cheat is enabled</h3>
+<ul>
+<li>The address might be wrong — writing to the wrong address can crash the game</li>
+<li>Try a smaller value</li>
+<li>Disable other cheats to check for conflicts</li>
+</ul>
+
+<h3>EMU (Game Genie) code doesn't work</h3>
+<ul>
+<li>Not all cores support Game Genie codes — check the core's documentation</li>
+<li>Make sure the code is entered correctly (including the dash)</li>
+<li>For multi-code cheats, separate codes with <code>+</code></li>
+<li>Try the equivalent RETRO cheat instead (using the code notes)</li>
+</ul>
+
+<h3>Cheat file not showing in RetroArch</h3>
+<ul>
+<li>Verify the file is in the correct <code>cheats</code> directory</li>
+<li>Make sure the file extension is <code>.cht</code> (not <code>.cht.txt</code>)</li>
+<li>Check that <code>cheats = N</code> matches the actual number of cheat entries</li>
+</ul>
+
+<h3>Values change back immediately</h3>
+<ul>
+<li>This is normal if <code>cheat_type = 1</code> (Set Value) and the cheat is enabled — RetroArch re-writes the value every frame, which is how "freeze" works</li>
+<li>If you want a one-time write, disable the cheat after applying it</li>
+</ul>
+
+<hr style="border: 0; border-top: 1px solid var(--border); margin: 32px 0;">
+
+<p style="text-align: center; color: var(--text-dim);">
+  RA CHT Editor — <a href="index.html">Back to Editor</a><br>
+  This guide covers the RetroArch cheat system as of version 1.22.2.
+</p>
+
+</body>
+</html>
