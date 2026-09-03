@@ -3,7 +3,7 @@
 RetroArch Cheat File Editor — a responsive web app for creating and editing `.cht` cheat files compatible with RetroArch.
 
 ## Live App
-**https://kesafatkari.github.io/RA-Android-CHT/**
+**https://ali-f-harandi.github.io/RA-Android-CHT/**
 
 ## Features
 - Create, edit, delete cheats with full RetroArch `.cht` compatibility
