@@ -5,6 +5,10 @@ RetroArch Cheat File Editor — a responsive web app for creating and editing `.
 ## Live App
 **https://ali-f-harandi.github.io/RA-Android-CHT/**
 
+## Guides
+- **[RetroArch .cht Guide](https://ali-f-harandi.github.io/RA-Android-CHT/guide.html)** — the .cht cheat file format: fields, cheat types, handlers, memory sizes, endianness, repeat, Game Genie / GameShark codes
+- **[RA-BP Quick Cheat .cfg Guide](https://ali-f-harandi.github.io/RA-Android-CHT/cfg-guide.html)** — the Quick Cheat .cfg format (RA-BP fork): all 17 fields, hotkeys, multi-write cheats, range lock, bookmarks
+
 ## Features
 - Create, edit, delete cheats with full RetroArch `.cht` compatibility
 - All cheat types: Set, Increase, Decrease, If Equal/NotEqual/Less/Greater

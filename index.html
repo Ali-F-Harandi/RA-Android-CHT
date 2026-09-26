@@ -91,6 +91,7 @@ h1 { color: var(--green-light); font-size: 1.4em; margin-bottom: 8px; }
   border: 1px solid var(--border);
 }
 .badge-enabled { background: var(--green-dark); color: var(--green-light); border-color: var(--green); }
+.badge-warn { background: #552200; color: #FFAA00; border-color: #AA6600; }
 .cheat-actions {
   display: flex;
   flex-direction: column;
@@ -242,6 +243,7 @@ h1 { color: var(--green-light); font-size: 1.4em; margin-bottom: 8px; }
       <div class="form-field">
         <label>Cheat Type</label>
         <select id="f_type">
+          <option value="0">Disabled</option>
           <option value="1">Set Value</option>
           <option value="2">Increase</option>
           <option value="3">Decrease</option>
@@ -253,7 +255,7 @@ h1 { color: var(--green-light); font-size: 1.4em; margin-bottom: 8px; }
       </div>
       <div class="form-field">
         <label>Memory Size</label>
-        <select id="f_size">
+        <select id="f_size" onchange="onSizeChange()">
           <option value="0">1-bit</option>
           <option value="1">2-bit</option>
           <option value="2">4-bit</option>
@@ -281,7 +283,7 @@ h1 { color: var(--green-light); font-size: 1.4em; margin-bottom: 8px; }
         <input type="text" id="f_val" placeholder="e.g. 63" style="text-transform:uppercase">
       </div>
       <div class="form-field">
-        <label>Bit Position (0-7)</label>
+        <label id="f_bitpos_label">Bit Position (0-7)</label>
         <input type="number" id="f_bitpos" value="0" min="0" max="7">
       </div>
     </div>
@@ -324,9 +326,42 @@ h1 { color: var(--green-light); font-size: 1.4em; margin-bottom: 8px; }
 const HANDLER_EMU = 0, HANDLER_RETRO = 1;
 const TYPE_NAMES = ['Disabled','Set Value','Increase','Decrease','If Equal','If Not Equal','If Less Than','If Greater Than'];
 const SIZE_NAMES = ['1-bit','2-bit','4-bit','8-bit','16-bit','32-bit'];
+// Max storable value per memory_search_size (RetroArch encoding 0-5)
+const MAX_VAL  = [1, 3, 15, 255, 65535, 4294967295];
+// Max valid address_bit_position per size: 1-bit:0-7, 2-bit:0-3, 4-bit:0-1, byte+:n/a
+const BITPOS_MAX = [7, 3, 1, 0, 0, 0];
 
 let cheats = [];
 let editingIndex = -1;
+
+// Parse an int, returning `def` ONLY when the field is missing or unparseable.
+// IMPORTANT: never use `parseInt(x) || def` here — 0 is a legitimate value for
+// handler (EMU), cheat_type (Disabled), memory_search_size (1-bit) and
+// repeat_add_to_address (repeat in place), and `0 || def` silently corrupts it.
+function intOr(v, def) {
+  if (v === undefined || v === null || v === '') return def;
+  const n = parseInt(v, 10);
+  return Number.isNaN(n) ? def : n;
+}
+
+// Parse a hex string (no 0x prefix needed). Returns null when invalid.
+function parseHex(s) {
+  const t = (s || '').trim();
+  if (t === '') return 0;
+  if (!/^[0-9a-fA-F]+$/.test(t)) return null;
+  return parseInt(t, 16);
+}
+
+// Sanitize a string for the .cht format: RetroArch's INI parser cannot escape
+// double quotes inside quoted values (the string simply ends at the next "),
+// and values are line-based. Replace quotes with apostrophes and collapse
+// line breaks so the exported file always round-trips cleanly.
+function chtSanitize(s) {
+  return String(s || '')
+    .replace(/"/g, "'")
+    .replace(/[\r\n]+/g, ' ')
+    .trim();
+}
 
 // ============================================================
 // Render
@@ -363,7 +398,6 @@ function render() {
       summary.textContent = `0x${c.address.toString(16).toUpperCase()} = 0x${c.value.toString(16).toUpperCase()} (${SIZE_NAMES[c.memorySearchSize]})`;
     }
     info.appendChild(summary);
-
     // Badges
     const badges = document.createElement('div');
     badges.className = 'cheat-badges';
@@ -383,6 +417,24 @@ function render() {
       bBadge.className = 'badge';
       bBadge.textContent = 'BigEndian';
       badges.appendChild(bBadge);
+    }
+    // Warn when the value cannot fit the selected memory size
+    // (RetroArch will mask it on apply — usually a mistake).
+    const mv = MAX_VAL[c.memorySearchSize];
+    if (c.handler !== HANDLER_EMU && mv !== undefined && c.value > mv) {
+      const wBadge = document.createElement('span');
+      wBadge.className = 'badge badge-warn';
+      wBadge.textContent = `value > ${SIZE_NAMES[c.memorySearchSize]} max (0x${mv.toString(16).toUpperCase()})`;
+      badges.appendChild(wBadge);
+    }
+    // Warn when bit position is out of range for sub-byte sizes
+    const bm = BITPOS_MAX[c.memorySearchSize];
+    if (c.handler !== HANDLER_EMU && bm !== undefined && c.memorySearchSize <= 2 &&
+        (c.addressBitPosition < 0 || c.addressBitPosition > bm)) {
+      const wBadge = document.createElement('span');
+      wBadge.className = 'badge badge-warn';
+      wBadge.textContent = `bit position must be 0-${bm} for ${SIZE_NAMES[c.memorySearchSize]}`;
+      badges.appendChild(wBadge);
     }
     info.appendChild(badges);
 
@@ -477,18 +529,64 @@ function toggleRetroFields() {
   document.getElementById('emuFields').style.display = isEmu ? 'flex' : 'none';
   document.getElementById('retroFields').style.display = isEmu ? 'none' : 'flex';
   document.getElementById('retroFields2').style.display = isEmu ? 'none' : 'flex';
+  onSizeChange();
+}
+
+// address_bit_position only applies to sub-byte sizes (1/2/4-bit).
+// For 8/16/32-bit RetroArch ignores it — keep it at 0 and disable the input.
+function onSizeChange() {
+  const size  = parseInt(document.getElementById('f_size').value, 10);
+  const bitpos  = document.getElementById('f_bitpos');
+  const label   = document.getElementById('f_bitpos_label');
+  const subByte = size <= 2;   /* 0=1-bit, 1=2-bit, 2=4-bit */
+  const maxPos  = BITPOS_MAX[size];
+  bitpos.disabled = !subByte;
+  bitpos.max = maxPos;
+  if (!subByte) {
+    bitpos.value = '0';
+    label.textContent = 'Bit Position (ignored for 8/16/32-bit)';
+  } else {
+    label.textContent = `Bit Position (0-${maxPos})`;
+    if (parseInt(bitpos.value, 10) > maxPos) bitpos.value = '0';
+  }
 }
 
 function saveCheat() {
+  const handler = parseInt(document.getElementById('f_handler').value);
+  const isEmu = (handler === HANDLER_EMU);
+
+  // --- Validation (never silently write a broken cheat) ---
+  let addr = 0, val = 0;
+  if (!isEmu) {
+    addr = parseHex(document.getElementById('f_addr').value);
+    val  = parseHex(document.getElementById('f_val').value);
+    if (addr === null || val === null) {
+      alert('Invalid hex value. Address and Value must be hexadecimal digits only (e.g. B832, 63).');
+      return;
+    }
+  } else if (!document.getElementById('f_code').value.trim()) {
+    alert('Emulator code is required for EMU (Game Genie / GameShark) cheats.');
+    return;
+  }
+
+  const size = parseInt(document.getElementById('f_size').value);
+  const mv = MAX_VAL[size];
+  // Value wider than the selected size: RetroArch masks it on apply — warn,
+  // but allow (user may know better).
+  if (!isEmu && mv !== undefined && val > mv) {
+    if (!confirm(`Value 0x${val.toString(16).toUpperCase()} exceeds the ${SIZE_NAMES[size]} range (max 0x${mv.toString(16).toUpperCase()}).\nRetroArch will mask it when applying. Save anyway?`))
+      return;
+  }
+
   const c = {
     desc: document.getElementById('f_desc').value.trim(),
-    handler: parseInt(document.getElementById('f_handler').value),
+    handler: handler,
     cheatType: parseInt(document.getElementById('f_type').value),
-    memorySearchSize: parseInt(document.getElementById('f_size').value),
+    memorySearchSize: size,
     code: document.getElementById('f_code').value.trim(),
-    address: parseInt(document.getElementById('f_addr').value || '0', 16),
-    value: parseInt(document.getElementById('f_val').value || '0', 16),
-    addressBitPosition: parseInt(document.getElementById('f_bitpos').value) || 0,
+    address: isEmu ? 0 : addr,
+    value: isEmu ? 0 : val,
+    addressBitPosition: isEmu ? 0 : (parseInt(document.getElementById('f_bitpos').value) || 0),
     repeatCount: parseInt(document.getElementById('f_repeat_count').value) || 1,
     repeatAddToValue: parseInt(document.getElementById('f_repeat_val').value) || 0,
     repeatAddToAddress: parseInt(document.getElementById('f_repeat_addr').value) || 1,
@@ -574,20 +672,28 @@ function parseCht(text) {
   const result = [];
   for (let i = 0; i < cheatCount; i++) {
     const f = rawCheats[i] || {};
+    // Handler default: RetroArch itself treats a MISSING handler as 0 (EMU),
+    // but a .cht that has an address and no code is clearly a memory-write
+    // cheat. Follow Quick Cheat's import logic instead: default RETRO (1)
+    // when the field is absent, but auto-detect EMU when only a code is
+    // present (code set, address missing/0).
+    let handler = intOr(f.handler, HANDLER_RETRO);
+    if (f.handler === undefined && f.code && !intOr(f.address, 0))
+      handler = HANDLER_EMU;
     result.push({
       desc: f.desc || '',
       code: f.code || '',
       enabled: f.enable === 'true' || f.enable === '1',
       bigEndian: f.big_endian === 'true' || f.big_endian === '1',
-      handler: parseInt(f.handler) || 1,
-      memorySearchSize: parseInt(f.memory_search_size) || 3,
-      cheatType: parseInt(f.cheat_type) || 1,
-      value: parseInt(f.value) || 0,
-      address: parseInt(f.address) || 0,
-      addressBitPosition: parseInt(f.address_bit_position) || 0,
-      repeatCount: parseInt(f.repeat_count) || 1,
-      repeatAddToValue: parseInt(f.repeat_add_to_value) || 0,
-      repeatAddToAddress: parseInt(f.repeat_add_to_address) || 1
+      handler: handler,
+      memorySearchSize: intOr(f.memory_search_size, 3),
+      cheatType: intOr(f.cheat_type, 1),
+      value: intOr(f.value, 0),
+      address: intOr(f.address, 0),
+      addressBitPosition: intOr(f.address_bit_position, 0),
+      repeatCount: intOr(f.repeat_count, 1),
+      repeatAddToValue: intOr(f.repeat_add_to_value, 0),
+      repeatAddToAddress: intOr(f.repeat_add_to_address, 1)
     });
   }
   return result;
@@ -599,12 +705,14 @@ function exportFile() {
     return;
   }
 
-  let text = `# RetroArch Cheat File\n# Generated by RA CHT Editor\n# https://kesafatkari.github.io/RA-Android-CHT/\n\ncheats = ${cheats.length}\n\n`;
+  let text = `# RetroArch Cheat File\n# Generated by RA CHT Editor\n# https://ali-f-harandi.github.io/RA-Android-CHT/\n\ncheats = ${cheats.length}\n\n`;
 
   cheats.forEach((c, i) => {
     const p = `cheat${i}_`;
-    text += `${p}desc = "${c.desc}"\n`;
-    text += `${p}code = "${c.code}"\n`;
+    // desc/code are sanitized: RetroArch's .cht parser cannot escape double
+    // quotes inside quoted values, and values are line-based.
+    text += `${p}desc = "${chtSanitize(c.desc)}"\n`;
+    text += `${p}code = "${chtSanitize(c.code)}"\n`;
     text += `${p}enable = ${c.enabled ? 'true' : 'false'}\n`;
     text += `${p}big_endian = ${c.bigEndian ? 'true' : 'false'}\n`;
     text += `${p}handler = ${c.handler}\n`;
@@ -634,9 +742,13 @@ function exportFile() {
   URL.revokeObjectURL(url);
 }
 
-// Close modal on overlay click
+// Close modal on overlay click or Escape
 document.getElementById('editModal').addEventListener('click', function(e) {
   if (e.target === this) closeModal();
+});
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape' && document.getElementById('editModal').classList.contains('active'))
+    closeModal();
 });
 
 // Init

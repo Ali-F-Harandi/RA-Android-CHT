@@ -263,7 +263,8 @@ FF21|09|Infinite Lives (P1)|8|set|1|1|0|Player 1|1||0|0||0|0|0</code></pre>
 <li>Section headers are lines starting with <code>[</code> &mdash; specifically <code>[settings]</code> and <code>[cheats]</code>.</li>
 <li>Lines starting with <code>#</code> are comments and are ignored.</li>
 <li>Blank lines are ignored.</li>
-<li>If a section header is missing, Quick Cheat still tries to parse keys (<code>notify=</code>, <code>x=</code>, etc.) wherever they appear, and treats non-key lines in the cheats area as cheat entries. This makes the format forgiving.</li>
+<li>Settings keys (<code>notify=</code>, <code>auto_apply=</code>, <code>x=</code>, <code>y=</code>, <code>w=</code>, <code>h=</code>) are recognized anywhere <em>outside</em> the <code>[cheats]</code> section &mdash; so a file without a <code>[settings]</code> header still loads its settings.</li>
+<li><strong>Cheat lines require the <code>[cheats]</code> header.</strong> A cheat line that appears before any <code>[cheats]</code> section header is <em>silently skipped</em>. If your cheats are not loading, this is the first thing to check.</li>
 </ul>
 </div>
 
@@ -274,12 +275,12 @@ FF21|09|Infinite Lives (P1)|8|set|1|1|0|Player 1|1||0|0||0|0|0</code></pre>
 <h3>Settings Keys</h3>
 <table>
 <tr><th>Key</th><th>Type</th><th>Default</th><th>Description</th></tr>
-<tr><td><code>notify</code></td><td>0 or 1</td><td>0</td><td>Whether to show on-screen notifications when a hotkey fires a cheat (1 = on, 0 = off)</td></tr>
+<tr><td><code>notify</code></td><td>0 or 1</td><td>1</td><td>Whether to show on-screen notifications when a hotkey fires a cheat (1 = on, 0 = off). <strong>Default is ON</strong>.</td></tr>
 <tr><td><code>auto_apply</code></td><td>0 or 1</td><td>0</td><td>Whether to automatically apply all enabled cheats when content loads (1 = on, 0 = off)</td></tr>
-<tr><td><code>x</code></td><td>int (pixels)</td><td>100</td><td>Popup window left-edge X coordinate</td></tr>
-<tr><td><code>y</code></td><td>int (pixels)</td><td>100</td><td>Popup window top-edge Y coordinate</td></tr>
-<tr><td><code>w</code></td><td>int (pixels)</td><td>900</td><td>Popup window width (capped at 65% of screen width)</td></tr>
-<tr><td><code>h</code></td><td>int (pixels)</td><td>600</td><td>Popup window height (capped at 75% of screen height)</td></tr>
+<tr><td><code>x</code></td><td>int (pixels)</td><td>centered</td><td>Popup window left-edge X coordinate. If the key is missing (first run), the popup is centered on screen.</td></tr>
+<tr><td><code>y</code></td><td>int (pixels)</td><td>centered</td><td>Popup window top-edge Y coordinate. If the key is missing (first run), the popup is centered on screen.</td></tr>
+<tr><td><code>w</code></td><td>int (pixels)</td><td>built-in size</td><td>Popup window width. Clamped to a minimum of <strong>1020</strong> and a maximum of <strong>65% of the screen work-area width</strong> &mdash; a hand-written w=900 is bumped up to 1020.</td></tr>
+<tr><td><code>h</code></td><td>int (pixels)</td><td>built-in size</td><td>Popup window height. Clamped to a minimum of <strong>660</strong> and a maximum of <strong>75% of the screen work-area height</strong>. If the saved position is off-screen, the popup is re-centered.</td></tr>
 </table>
 
 <div class="note-yellow">
@@ -338,7 +339,7 @@ B832|50|Infinite HP (P1)|8|set|1|1|0|Player 1|1||0</code></pre>
 <tr><td><span class="field-num">7</span></td><td><code>freeze</code></td><td>0/1</td><td>0</td><td>1 = re-apply every frame ("freeze" the value). 0 = one-shot only. Ignored for conditional types (eq/neq/lt/gt).</td></tr>
 <tr><td><span class="field-num">8</span></td><td><code>bigendian</code></td><td>0/1</td><td>0</td><td>1 = big-endian byte order (Sega Genesis/68000). 0 = little-endian (NES, SNES, GB, PSX). Multi-write: <code>;</code>-separated.</td></tr>
 <tr><td><span class="field-num">9</span></td><td><code>group</code></td><td>string</td><td>""</td><td>Logical grouping shown in the filter dropdown (escaped). E.g. "Player 1", "Enemies", "Hotkeys".</td></tr>
-<tr><td><span class="field-num">10</span></td><td><code>handler</code></td><td>int</td><td>0</td><td>0 = EMU (Game Genie/GameShark code string). 1 = RETRO (direct memory write). Most cheats use 1.</td></tr>
+<tr><td><span class="field-num">10</span></td><td><code>handler</code></td><td>int</td><td>1</td><td>0 = EMU (Game Genie/GameShark code string). 1 = RETRO (direct memory write). When the field is missing or empty it defaults to <strong>1 (RETRO)</strong> &mdash; most cheats use 1.</td></tr>
 <tr><td><span class="field-num">11</span></td><td><code>code</code></td><td>string</td><td>""</td><td>Emulator code string, only used when <code>handler=0</code> (escaped). E.g. <code>AT4A-AA48</code>.</td></tr>
 <tr><td><span class="field-num">12</span></td><td><code>hotkey</code></td><td>int</td><td>0</td><td>0 = none. 1&ndash;9 = Numpad 1&ndash;9. 10&ndash;18 = Ctrl+Num 1&ndash;9. 19&ndash;27 = Alt+Num 1&ndash;9.</td></tr>
 <tr><td><span class="field-num">13</span></td><td><code>timing</code></td><td>int</td><td>0</td><td><strong>(v2.8, optional)</strong> Apply every N frames. 0 or 1 = every frame. 2 = every 2nd frame, etc. Slows down freeze rate.</td></tr>
@@ -365,10 +366,10 @@ B832|50|Infinite HP (P1)|8|set|1|1|0|Player 1|1||0</code></pre>
 <tr><td><code>set</code></td><td>1</td><td>Set Value</td><td>Writes <code>val</code> to <code>addr</code>. This is the most common type &mdash; use it for infinite health, infinite lives, unlocking characters, freezing timers, etc.</td></tr>
 <tr><td><code>inc</code></td><td>2</td><td>Increase</td><td>Adds <code>val</code> to the current value at <code>addr</code>. For hotkey cheats, <code>val</code> is the amount added per press.</td></tr>
 <tr><td><code>dec</code></td><td>3</td><td>Decrease</td><td>Subtracts <code>val</code> from the current value. For hotkey cheats, <code>val</code> is the amount subtracted per press.</td></tr>
-<tr><td><code>eq</code></td><td>4</td><td>If Equal</td><td>Conditional: if the current value at <code>addr</code> equals <code>val</code>, execute the <em>next</em> cheat in the list. Otherwise skip it.</td></tr>
-<tr><td><code>neq</code></td><td>5</td><td>If Not Equal</td><td>Conditional: if current value &ne; <code>val</code>, execute the next cheat. Otherwise skip it.</td></tr>
-<tr><td><code>lt</code></td><td>6</td><td>If Less Than</td><td>Conditional: if current value &lt; <code>val</code>, execute the next cheat.</td></tr>
-<tr><td><code>gt</code></td><td>7</td><td>If Greater Than</td><td>Conditional: if current value &gt; <code>val</code>, execute the next cheat.</td></tr>
+<tr><td><code>eq</code></td><td>4</td><td>If Equal</td><td>Conditional (no write happens): if the current value at <code>addr</code> equals <code>val</code>, the <em>next write in the same cheat</em> runs; otherwise that next write is skipped.</td></tr>
+<tr><td><code>neq</code></td><td>5</td><td>If Not Equal</td><td>Conditional: if current value &ne; <code>val</code>, run the next write in the same cheat. Otherwise skip it.</td></tr>
+<tr><td><code>lt</code></td><td>6</td><td>If Less Than</td><td>Conditional: if <code>val</code> &lt; current value, run the next write in the same cheat. <strong>Note the operand order</strong> (RetroArch semantics &mdash; see warning below).</td></tr>
+<tr><td><code>gt</code></td><td>7</td><td>If Greater Than</td><td>Conditional: if <code>val</code> &gt; current value, run the next write in the same cheat. <strong>Note the operand order</strong> (RetroArch semantics &mdash; see warning below).</td></tr>
 </table>
 
 <div class="note-yellow">
@@ -376,17 +377,32 @@ B832|50|Infinite HP (P1)|8|set|1|1|0|Player 1|1||0</code></pre>
 <ul>
 <li><strong>set</strong> &mdash; Infinite health, infinite lives, infinite ammo, unlock characters, freeze timer, stage select, difficulty change</li>
 <li><strong>inc / dec</strong> &mdash; Hotkey-triggered adjustments: "HP +10", "Score +10000", "Lives -1". Also useful for one-shot score boosts.</li>
-<li><strong>eq / neq / lt / gt</strong> &mdash; Multi-step conditional cheats. For example: cheat N checks "if boss health &lt; 50" and cheat N+1 (which runs only if the condition is met) sets boss health to 0.</li>
+<li><strong>eq / neq / lt / gt</strong> &mdash; Conditional chains <em>within one multi-write cheat</em>. The conditional write is evaluated first and gates the write that follows it in the same cheat line. Example: "if boss health &lt; 50, set boss health to 0" is a single cheat with two writes (see below).</li>
 </ul>
 </div>
 
+<div class="note-red">
+<strong>Conditionals gate the next WRITE in the same cheat &mdash; not the next cheat entry.</strong>
+Unlike RetroArch's <code>.cht</code> format (where a conditional skips the next cheat <em>entry</em> in the list), Quick Cheat conditionals work <em>within</em> a single cheat line: a failed condition skips exactly the write that follows the conditional (per-write <code>type</code> lists make this possible), and the gate resets after that. A conditional write never modifies memory itself.
+</div>
+
+<div class="note-red">
+<strong>Operand order of <code>lt</code> / <code>gt</code> (RetroArch quirk):</strong>
+<code>lt</code> means "run the next write if <code>val</code> is less than the current value" (i.e. current &gt; val), and <code>gt</code> means "run the next write if <code>val</code> is greater than the current value" (i.e. current &lt; val). This is the opposite of what the names suggest, but it matches RetroArch's <code>RUN_NEXT_IF_LT</code> / <code>RUN_NEXT_IF_GT</code> implementation exactly. To express "if boss HP &lt; 50", use <code>gt</code> with val = 32 hex (50 decimal).
+</div>
+
+<h3>Conditional Example: "If boss HP &lt; 50, kill it"</h3>
+<pre><code># write 1: gt 32  -> runs next write only if val(0x32) > current, i.e. boss HP &lt; 50
+# write 2: set 00 -> sets boss HP to 0, but only when the condition passed
+B932;B932|32;00|If boss HP &lt; 50, kill it|8;8|gt;set|1|0|0|Boss|1||0</code></pre>
+
 <div class="note">
-<strong>Conditionals and freeze:</strong> If any write in a cheat uses a conditional type (eq/neq/lt/gt), the <code>freeze</code> flag is automatically forced to 0. Conditionals are evaluated per-application, not per-frame &mdash; they gate whether the <em>next</em> cheat runs.
+<strong>Conditionals and freeze:</strong> If any write in a cheat uses a conditional type (eq/neq/lt/gt), the <code>freeze</code> flag is automatically forced to 0. Conditionals are evaluated whenever the cheat is applied &mdash; via the <strong>Apply</strong> button, <strong>Ctrl+Num0</strong>, or a matching <strong>hotkey</strong> &mdash; but never in the per-frame freeze loop.
 </div>
 
 <!-- ================================================================ -->
 <h2 id="memory-sizes">8. Memory Sizes</h2>
-<p>The <code>size</code> field (field 4) tells Quick Cheat how many bits to read or write at the address. Unlike RetroArch's <code>.cht</code> format (which uses codes 0&ndash;5), Quick Cheat uses the actual bit count for clarity.</p>
+<p>The <code>size</code> field (field 4) tells Quick Cheat how many bits to read or write at the address. Unlike RetroArch's <code>.cht</code> format (which uses codes 0&ndash;5), Quick Cheat uses the actual bit count for clarity. <strong>Only 8, 16, and 32 are recognized</strong> &mdash; any other value (or a missing size field) is treated as 8-bit.</p>
 
 <table>
 <tr><th>Value</th><th>Size</th><th>Range</th><th>Use When</th></tr>
@@ -539,31 +555,42 @@ When Quick Cheat reads this back, it converts <code>\p</code> back to <code>|</c
 
 <!-- ================================================================ -->
 <h2 id="range-lock">14. Value Range Lock (v3.0)</h2>
-<p>Version 3.0 introduced <strong>Value Range Lock</strong>, a different way to "freeze" a value. Instead of writing a fixed value every frame, a range-locked cheat <em>reads</em> the current value and only writes if it falls outside the allowed range. This lets the game modify the value freely within bounds, while preventing it from going too low (e.g. death) or too high (e.g. overflow).</p>
+<p>Version 3.0 introduced <strong>Value Range Lock</strong>, a boundary guard for freeze cheats. On every freeze tick, Quick Cheat first <em>reads</em> the current value at the cheat's first write address: if it is outside <code>[range_min, range_max]</code>, the boundary value is written immediately and the cheat's normal writes are skipped for that tick. If the value is <em>inside</em> the range, the cheat's normal writes still execute as usual &mdash; <code>val</code> is not ignored.</p>
 
 <h3>The Three Fields</h3>
 <table>
 <tr><th>#</th><th>Field</th><th>Type</th><th>Description</th></tr>
-<tr><td>15</td><td><code>range_lock</code></td><td>0/1</td><td>1 = enable range lock. When enabled, the <code>val</code> field is ignored for freeze writes; instead the current value is clamped.</td></tr>
+<tr><td>15</td><td><code>range_lock</code></td><td>0/1</td><td>1 = enable range lock. Only meaningful on freeze cheats (<code>enabled=1, freeze=1</code>) &mdash; one-shot Apply and hotkey presses bypass it.</td></tr>
 <tr><td>16</td><td><code>range_min</code></td><td>hex</td><td>Minimum allowed value. If current &lt; min, write min.</td></tr>
 <tr><td>17</td><td><code>range_max</code></td><td>hex</td><td>Maximum allowed value. If current &gt; max, write max.</td></tr>
 </table>
 
-<h3>How It Works</h3>
-<p>When a freeze cheat has <code>range_lock=1</code>, every frame Quick Cheat does this:</p>
+<h3>How It Works (per freeze tick)</h3>
 <ol>
-<li>Read the current value at <code>addr</code></li>
-<li>If current &lt; <code>range_min</code>: write <code>range_min</code></li>
-<li>If current &gt; <code>range_max</code>: write <code>range_max</code></li>
-<li>If current is within range: do nothing (let the game's value stand)</li>
+<li>Read the current value at <code>write[0]</code>'s address (only the first write of the cheat is range-checked).</li>
+<li>If current &lt; <code>range_min</code>: write <code>range_min</code>, skip the normal writes this tick.</li>
+<li>If current &gt; <code>range_max</code>: write <code>range_max</code>, skip the normal writes this tick.</li>
+<li>If current is within range (or the read fails): the cheat's normal <code>set</code>/<code>inc</code>/<code>dec</code> writes still run &mdash; <code>val</code> is applied as usual.</li>
 </ol>
 
-<h3>Example: Keep HP between 50 and 99</h3>
-<pre><code>B832|00|HP Lock 50-99 (P1)|8|set|1|1|0|Player 1|1||0|0||1|32|63</code></pre>
-<p>This locks Player 1's health so it can never drop below hex <code>32</code> (decimal 50) or exceed hex <code>63</code> (decimal 99). The game can heal or damage within that range, but the value is clamped at the boundaries. Note: the <code>val</code> field (<code>00</code>) is ignored when range_lock is on, but must still be present as a placeholder.</p>
+<h3>Example 1: HP regen &mdash; +1 per frame, capped at 99</h3>
+<pre><code>B832|01|HP Regen up to 99 (P1)|8|inc|1|1|0|Player 1|1||0|0||1|0|63</code></pre>
+<p>While HP is within [0, 99] (hex <code>63</code>), the cheat adds 1 per frame (the normal <code>inc</code> write). Once HP would exceed 99, the upper boundary wins and the value is pinned at 99. Damage still works &mdash; the regen simply pushes the value back up afterwards.</p>
+
+<h3>Example 2: HP drain &mdash; -1 per frame, floored at 50</h3>
+<pre><code>B832|01|HP Drain to 50 min (P1)|8|dec|1|1|0|Player 1|1||0|0||1|32|63</code></pre>
+<p>The value drains by 1 per frame but can never fall below hex <code>32</code> (decimal 50): as soon as it would go lower, the clamp writes <code>32</code> instead.</p>
+
+<div class="note-red">
+<strong>Do not pair range lock with <code>set</code>.</strong> A <code>set</code> cheat already pins the value to <code>val</code> on every tick, so the range adds nothing while <code>val</code> is inside [min, max] &mdash; and if <code>val</code> is <em>outside</em> the range the value oscillates every frame (set writes val, the clamp drags it back to the boundary, set writes val again&hellip;). The old "HP Lock 50-99 with set + val=00" recipe from earlier revisions of this guide was exactly this bug: use <code>inc</code>/<code>dec</code> patterns above instead.
+</div>
 
 <div class="note-yellow">
-<strong>Range lock vs freeze:</strong> A normal freeze (<code>freeze=1, range_lock=0</code>) pins the value to exactly <code>val</code> every frame &mdash; the game cannot change it at all. A range lock (<code>freeze=1, range_lock=1</code>) lets the game change the value within [min, max] and only intervenes at the boundaries. Use freeze when you want a fixed value; use range lock when you want a "safety net."
+<strong>Range lock vs freeze:</strong> A normal freeze (<code>freeze=1, range_lock=0</code>) pins the value to exactly <code>val</code> every frame &mdash; the game cannot change it at all. A range lock (<code>freeze=1, range_lock=1</code>) adds hard boundaries on top of the cheat's own writes: out-of-range values are instantly clamped to the boundary, and in-range values still receive the cheat's normal <code>set</code>/<code>inc</code>/<code>dec</code> writes. Use plain freeze when you want a fixed value; use range lock with <code>inc</code>/<code>dec</code> when you want "regen up to a cap" or "drain down to a floor" behavior.
+</div>
+
+<div class="note">
+<strong>Multi-write note:</strong> Range lock only reads and clamps the cheat's <em>first</em> write (<code>write[0]</code>). Any additional writes in the same cheat apply normally on every tick.
 </div>
 
 <!-- ================================================================ -->
@@ -678,8 +705,8 @@ B932;B9B5;BA32;BB32;BBB2;BAB2;BCB2|00|Kill All Enemies [Ctrl+1]|8|set|1|0|0|Kill
 FA78;FF06|01;04|Clear Stage [Ctrl+2]|8|set|1|0|0|Clear Stage|1||11|0||0|0|0
 
 # ===== Value Range Lock (v3.0) =====
-# Keep P1 HP between 50 (0x32) and 99 (0x63) - game can heal/damage within range.
-B832|00|HP Range Lock 50-99 (P1)|8|set|0|1|0|Player 1|1||0|0||1|32|63
+# HP regen: +1 per frame while in [0,99], pinned at 99 (0x63) at the cap.
+B832|01|HP Regen up to 99 (P1)|8|inc|0|1|0|Player 1|1||0|0||1|0|63
 
 # ===== Game Genie Codes (EMU handler) =====
 0000|00|Infinite Fighters (Game Genie)|8|set|0|0|0|Game Genie|0|AT4A-AA48|0|0||0|0|0
@@ -694,13 +721,17 @@ B832|00|HP Range Lock 50-99 (P1)|8|set|0|1|0|Player 1|1||0|0||1|32|63
 B832|3|Player 1 Health
 FF21|3|Player 1 Lives
 FF08|4|Score High
-FB00|16|Stage Time</code></pre>
+FB00|4|Stage Time</code></pre>
+
+<div class="note-red">
+<strong>Bookmark size uses the RetroArch code, NOT the bit count.</strong> In the <code>.bookmarks</code> file the size column is <code>3</code> = 8-bit, <code>4</code> = 16-bit, <code>5</code> = 32-bit &mdash; the same codes as <code>memory_search_size</code> in <code>.cht</code> files. This is <em>different</em> from cheat lines in the <code>.cfg</code> file itself, which use the bit count (8/16/32). A size of <code>16</code> in a bookmark line is invalid and will not behave as "16-bit".
+</div>
 
 <h3>Bookmark Fields</h3>
 <table>
 <tr><th>#</th><th>Field</th><th>Type</th><th>Description</th></tr>
 <tr><td>1</td><td><code>address</code></td><td>hex</td><td>Memory address (hex, no <code>0x</code> prefix)</td></tr>
-<tr><td>2</td><td><code>size</code></td><td>int</td><td>8, 16, or 32 (same encoding as cheats)</td></tr>
+<tr><td>2</td><td><code>size</code></td><td>int</td><td>RetroArch size code: <strong>3 = 8-bit, 4 = 16-bit, 5 = 32-bit</strong> (NOT the 8/16/32 bit count used in cheat lines)</td></tr>
 <tr><td>3</td><td><code>label</code></td><td>string</td><td>Free-form label for the bookmark (not escaped &mdash; no pipes allowed)</td></tr>
 </table>
 
@@ -755,12 +786,12 @@ FF21|09|Infinite Lives|8|set|1|1|0|Player 1|1||0</code></pre>
 <ol>
 <li>Take the decimal <code>address</code> from the <code>.cht</code> and convert to hex (e.g. <code>47154</code> &rarr; <code>B832</code>).</li>
 <li>Take the decimal <code>value</code> and convert to hex (e.g. <code>99</code> &rarr; <code>63</code>).</li>
-<li>Convert the <code>memory_search_size</code> code to a bit count: 3&rarr;8, 4&rarr;16, 5&rarr;32.</li>
+<li>Convert the <code>memory_search_size</code> code to a bit count: 3&rarr;8, 4&rarr;16, 5&rarr;32. Codes 0&ndash;2 (1/2/4-bit) have no <code>.cfg</code> equivalent &mdash; Quick Cheat treats anything other than 16/32 as 8-bit, so convert them to 8 and verify the cheat still makes sense.</li>
 <li>Convert the <code>cheat_type</code> code to a keyword: 1&rarr;set, 2&rarr;inc, 3&rarr;dec, 4&rarr;eq, 5&rarr;neq, 6&rarr;lt, 7&rarr;gt.</li>
 <li>Convert <code>handler</code> (same numbering: 0=EMU, 1=RETRO).</li>
 <li>Convert <code>big_endian</code> true/false to 1/0.</li>
 <li>Convert <code>enable</code> true/false to 1/0.</li>
-<li>Map <code>freeze</code> to 1 if the cheat is a "Set Value" that should re-apply every frame (in <code>.cht</code>, all enabled cheats freeze; in <code>.cfg</code> you choose).</li>
+<li>Map <code>freeze</code> to 1 if the cheat is a "Set Value" that should re-apply every frame (in <code>.cht</code>, all enabled cheats freeze; in <code>.cfg</code> you choose). Quick Cheat's own <strong>Import .cht</strong> button does exactly this: enabled, non-conditional RETRO cheats are imported with <code>freeze=1</code>.</li>
 <li>Assemble: <code>addr|val|desc|size|type|enabled|freeze|bigendian|group|handler|code|hotkey</code></li>
 </ol>
 
@@ -830,12 +861,13 @@ FF21|09|Infinite Lives|8|set|1|1|0|Player 1|1||0</code></pre>
 <li>Make sure <code>range_min</code> and <code>range_max</code> are in <strong>hex</strong> (e.g. <code>32</code> for decimal 50)</li>
 <li>Verify <code>range_min</code> &le; <code>range_max</code></li>
 <li>Range lock reads the <em>first</em> write's address &mdash; for multi-write cheats, only write[0] is range-locked</li>
+<li>Remember that while the value is <em>inside</em> [min, max] the cheat's normal set/inc/dec writes still run &mdash; that is expected behavior, not a bug. Range lock only replaces the write when the value is outside the boundaries</li>
 </ul>
 
 <h3>Window position or size is wrong</h3>
 <ul>
 <li>Edit the <code>[settings]</code> section: <code>x</code>, <code>y</code>, <code>w</code>, <code>h</code></li>
-<li>Window size is capped at 65% screen width / 75% screen height &mdash; very large values are clamped</li>
+<li>Window size is clamped both ways: minimum <strong>1020&times;660</strong>, maximum 65% screen width / 75% screen height &mdash; a hand-written <code>w=900</code> is bumped <em>up</em> to 1020, and oversized values are clamped down</li>
 <li>Delete the <code>[settings]</code> section entirely to reset to defaults</li>
 </ul>
 
@@ -843,7 +875,7 @@ FF21|09|Infinite Lives|8|set|1|1|0|Player 1|1||0</code></pre>
 
 <p style="text-align: center; color: var(--text-dim);">
   RA-BP Quick Cheat &mdash; <a href="index.html">Back to Editor</a> &mdash; <a href="guide.html">.cht Guide (RetroArch)</a><br>
-  This guide covers the Quick Cheat <code>.cfg</code> format as of v3.6.0.<br>
+  This guide covers the Quick Cheat <code>.cfg</code> format as of v3.6.0 (verified against the RA-BP v9.3 bugfix round).<br>
   The <code>[settings]</code> section is optional &mdash; a <code>.cfg</code> file with only <code>[cheats]</code> is perfectly valid.
 </p>
 

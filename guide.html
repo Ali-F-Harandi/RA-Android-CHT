@@ -211,7 +211,7 @@ cheat1_enable = true
 ... (same fields as cheat0, but with cheat1_ prefix)</code></pre>
 
 <div class="note-yellow">
-<strong>Important:</strong> The first line <code>cheats = N</code> tells RetroArch how many cheats to load. Each cheat then uses the prefix <code>cheatN_</code> where N is the index (starting from 0).
+<strong>Important:</strong> The <code>cheats = N</code> line tells RetroArch how many cheats to load (it is parsed in a first pass, so technically it can appear anywhere in the file, but by convention it comes first). Each cheat then uses the prefix <code>cheatN_</code> where N is the index (starting from 0).
 </div>
 
 <!-- ================================================================ -->
@@ -224,7 +224,7 @@ cheat1_enable = true
 <tr><td><code>code</code></td><td>string</td><td>""</td><td>Emulator-specific code (Game Genie, GameShark, etc.) — used when handler=0</td></tr>
 <tr><td><code>enable</code></td><td>bool</td><td>false</td><td>Whether the cheat is active (enabled) when loaded</td></tr>
 <tr><td><code>big_endian</code></td><td>bool</td><td>false</td><td>Byte order for multi-byte values (see Endianness section)</td></tr>
-<tr><td><code>handler</code></td><td>int</td><td>1</td><td>0 = EMU (emulator code), 1 = RETRO (memory write)</td></tr>
+<tr><td><code>handler</code></td><td>int</td><td>0</td><td>0 = EMU (emulator code), 1 = RETRO (memory write). <strong>If the field is omitted, RetroArch treats the cheat as EMU (0)</strong> — always write it explicitly for memory-write cheats.</td></tr>
 <tr><td><code>memory_search_size</code></td><td>int</td><td>3</td><td>Bit width: 0=1-bit, 1=2-bit, 2=4-bit, 3=8-bit, 4=16-bit, 5=32-bit</td></tr>
 <tr><td><code>cheat_type</code></td><td>int</td><td>1</td><td>What the cheat does: 1=Set, 2=Inc, 3=Dec, 4-7=Conditional</td></tr>
 <tr><td><code>value</code></td><td>int</td><td>0</td><td>The value to write (decimal, not hex!)</td></tr>
@@ -252,8 +252,8 @@ cheat1_enable = true
 <tr><td>3</td><td>Decrease</td><td>Subtracts <code>value</code> from the current value every frame</td></tr>
 <tr><td>4</td><td>If Equal</td><td>Conditional: if current value == <code>value</code>, execute the next cheat in the list</td></tr>
 <tr><td>5</td><td>If Not Equal</td><td>Conditional: if current value != <code>value</code>, execute next cheat</td></tr>
-<tr><td>6</td><td>If Less Than</td><td>Conditional: if current value &lt; <code>value</code>, execute next cheat</td></tr>
-<tr><td>7</td><td>If Greater Than</td><td>Conditional: if current value &gt; <code>value</code>, execute next cheat</td></tr>
+<tr><td>6</td><td>If Less Than</td><td>Conditional: if <code>value</code> &lt; current value (i.e. current &gt; value), execute next cheat. <strong>Note the operand order</strong> — see the warning below.</td></tr>
+<tr><td>7</td><td>If Greater Than</td><td>Conditional: if <code>value</code> &gt; current value (i.e. current &lt; value), execute next cheat. <strong>Note the operand order</strong> — see the warning below.</td></tr>
 </table>
 
 <div class="note-yellow">
@@ -262,19 +262,29 @@ cheat1_enable = true
 <li><strong>Set Value (1)</strong>: Infinite health, infinite lives, infinite ammo, unlock characters, freeze timer</li>
 <li><strong>Increase (2)</strong>: Add points to score (rarely used)</li>
 <li><strong>Decrease (3)</strong>: Reduce enemy health (rarely used)</li>
-<li><strong>Conditionals (4-7)</strong>: Advanced multi-step cheats. For example: "If boss health &lt; 50, then set boss health to 0"</li>
+<li><strong>Conditionals (4-7)</strong>: Advanced multi-step cheats. For example: "If boss health &lt; 50, then set boss health to 0" — which, due to the operand order below, is expressed with cheat_type <strong>7</strong> (If Greater Than) and value 50</li>
 </ul>
 </div>
 
-<p>For conditionals, the "next cheat" is simply the cheat with the next index. For example, if <code>cheat0</code> is "If Equal" and its condition is met, <code>cheat1</code> will be executed. If the condition is NOT met, <code>cheat1</code> is skipped.</p>
+<div class="note-red">
+<strong>Operand order of "If Less Than" / "If Greater Than" (RetroArch quirk):</strong>
+RetroArch evaluates these as <code>value &lt; current_value</code> (type 6) and <code>value &gt; current_value</code> (type 7) &mdash; the cheat's <code>value</code> is compared <em>against</em> the current memory value, the opposite of what the names suggest. So:
+<ul>
+<li><strong>type 6 (If Less Than), value=50</strong> &rarr; next cheat runs when the current value is <em>greater than</em> 50</li>
+<li><strong>type 7 (If Greater Than), value=50</strong> &rarr; next cheat runs when the current value is <em>less than</em> 50</li>
+</ul>
+This matches the upstream implementation of <code>RUN_NEXT_IF_LT</code> / <code>RUN_NEXT_IF_GT</code> and is kept for compatibility. Double-check your conditionals &mdash; swapped operands are the most common conditional bug.
+</div>
+
+<p>For conditionals, the "next cheat" is simply the cheat with the next index. For example, if <code>cheat0</code> is "If Equal" and its condition is met, <code>cheat1</code> will be executed. If the condition is NOT met, <code>cheat1</code> is skipped. The skip applies to exactly one cheat &mdash; <code>cheat2</code> runs normally again. A conditional cheat never writes memory itself; it only gates the cheat after it.</p>
 
 <!-- ================================================================ -->
 <h2 id="handlers">5. Handlers: RETRO vs EMU</h2>
 <p>RetroArch supports two ways to apply cheats:</p>
 
 <h3>RETRO Handler (handler = 1)</h3>
-<p>This is the default and most common. RetroArch directly reads/writes the core's memory. You specify a memory <code>address</code> and a <code>value</code> to write there.</p>
-<p>Most cheats you create from code notes will use this handler.</p>
+<p>This is the most common handler. RetroArch directly reads/writes the core's memory. You specify a memory <code>address</code> and a <code>value</code> to write there.</p>
+<p>Most cheats you create from code notes will use this handler. <strong>Note:</strong> although handler 1 is what you usually want, a <code>.cht</code> entry that omits the <code>handler</code> field entirely loads as EMU (0) &mdash; so always write <code>handler = 1</code> explicitly for memory-write cheats.</p>
 
 <h3>EMU Handler (handler = 0)</h3>
 <p>This uses emulator-specific cheat code formats like Game Genie, GameShark, Pro Action Replay, etc. The code is stored in the <code>code</code> field as a string.</p>
@@ -304,7 +314,7 @@ Note: when using EMU handler, <code>address</code>, <code>value</code>, and <cod
 </table>
 
 <div class="note-yellow">
-<strong>For 1-bit, 2-bit, and 4-bit sizes:</strong> You must also set <code>address_bit_position</code> (0-7) to specify which bit(s) within the byte to modify. For 8-bit and larger, this is always 0.
+<strong>For 1-bit, 2-bit, and 4-bit sizes:</strong> You must also set <code>address_bit_position</code> to specify which bit(s) within the byte to modify. The valid range depends on the size: <strong>1-bit &rarr; 0&ndash;7</strong> (single bit), <strong>2-bit &rarr; 0&ndash;3</strong> (bit pairs 00/01/02/03 = 00000011, 00001100, 00110000, 11000000), <strong>4-bit &rarr; 0&ndash;1</strong> (nibbles 0 = 00001111, 1 = 11110000). For 8-bit and larger, this field is ignored &mdash; leave it 0.
 </div>
 
 <!-- ================================================================ -->
