@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>RA-BP Quick Cheat — .cfg Guide</title>
+<title>RA Cheat — Config &amp; Cheat Guide (RA-BP)</title>
 <style>
 :root {
   --green: #00AA00;
@@ -151,96 +151,162 @@ tr:nth-child(even) td { background: rgba(255,255,255,0.02); }
 </head>
 <body>
 
-<h1>RA-BP Quick Cheat — .cfg File Guide</h1>
-<div class="subtitle">Complete guide to understanding, creating, and editing <code>.cfg</code> files for the RA-BP Quick Cheat system</div>
+<h1>RA Cheat — Config &amp; Cheat Guide</h1>
+<div class="subtitle">The complete, updated guide to the RA-BP cheat system: the two cheat types, every config file, and how to create cheats with RA Cheat v1.9.1</div>
 
 <a href="index.html" class="btn">&larr; Back to Editor</a>
 &nbsp;
 <a href="guide.html" class="btn">.cht Guide (RetroArch)</a>
 
+<div class="note-yellow">
+<strong>Updated guide (2026):</strong> the old embedded <em>Quick Cheat</em> popup (quick_cheat.c) has been removed from RA-BP. Its successor is <strong>RA Cheat</strong> (<code>racheat.pyw</code>) &mdash; a standalone external trainer that talks to RetroArch over the Network Command Interface. The cheat system now has <strong>two cheat types</strong> (Cheat Table + RetroArch cheats) and <strong>several config files</strong>, all documented on this page. The <code>.cfg</code> cheat-table format is unchanged on disk, so old Quick Cheat profiles keep working.
+</div>
+
 <div class="toc">
   <div class="toc-title">Table of Contents</div>
   <ul>
-    <li><a href="#what-is-cfg">1. What is a .cfg file?</a></li>
-    <li><a href="#location">2. File Location &amp; Naming</a></li>
-    <li><a href="#structure">3. File Structure Overview</a></li>
-    <li><a href="#settings">4. The [settings] Section (Optional)</a></li>
-    <li><a href="#cheats">5. The [cheats] Section</a></li>
-    <li><a href="#fields">6. Field Reference (All 17 Fields)</a></li>
-    <li><a href="#cheat-types">7. Cheat Types</a></li>
-    <li><a href="#memory-sizes">8. Memory Sizes</a></li>
-    <li><a href="#endian">9. Endianness</a></li>
-    <li><a href="#multi-write">10. Multi-Write Cheats</a></li>
-    <li><a href="#hotkeys">11. Hotkeys</a></li>
-    <li><a href="#escaping">12. Escape Rules</a></li>
-    <li><a href="#timing-notes">13. Timing &amp; Notes (v2.8)</a></li>
-    <li><a href="#range-lock">14. Value Range Lock (v3.0)</a></li>
-    <li><a href="#handlers">15. Handlers: RETRO vs EMU</a></li>
-    <li><a href="#example">16. Complete Example: Streets of Rage</a></li>
-    <li><a href="#bookmarks">17. Bookmarks File (.bookmarks)</a></li>
-    <li><a href="#manual">18. Writing .cfg Files by Hand</a></li>
-    <li><a href="#troubleshooting">19. Troubleshooting</a></li>
+    <li><a href="#system">1. The RA Cheat System</a></li>
+    <li><a href="#two-types">2. The Two Cheat Types (+2 Handlers)</a></li>
+    <li><a href="#config-files">3. All Config Files at a Glance</a></li>
+    <li><a href="#location">4. Cheat Table File: Location &amp; Naming</a></li>
+    <li><a href="#structure">5. .cfg File Structure</a></li>
+    <li><a href="#settings">6. The [settings] Section</a></li>
+    <li><a href="#cheats">7. The [cheats] Section</a></li>
+    <li><a href="#fields">8. Field Reference (All 20 Fields)</a></li>
+    <li><a href="#cheat-types">9. Cheat Types</a></li>
+    <li><a href="#memory-sizes">10. Memory Sizes</a></li>
+    <li><a href="#endian">11. Endianness</a></li>
+    <li><a href="#multi-write">12. Multi-Write Cheats</a></li>
+    <li><a href="#hotkeys">13. Hotkeys</a></li>
+    <li><a href="#escaping">14. Escape Rules</a></li>
+    <li><a href="#timing-notes">15. Timing &amp; Notes</a></li>
+    <li><a href="#range-lock">16. Value Range Lock</a></li>
+    <li><a href="#freeze-modes">17. Freeze Modes (v1.7)</a></li>
+    <li><a href="#handlers">18. Handlers: RETRO vs EMU</a></li>
+    <li><a href="#racheats">19. RetroArch Cheats State (.racheats.json)</a></li>
+    <li><a href="#app-settings">20. Global Settings (racheat_settings.json)</a></li>
+    <li><a href="#workflow">21. Creating Cheats with RA Cheat</a></li>
+    <li><a href="#example">22. Complete Example: Streets of Rage</a></li>
+    <li><a href="#manual">23. Writing Config Files by Hand</a></li>
+    <li><a href="#troubleshooting">24. Troubleshooting</a></li>
   </ul>
 </div>
 
 <!-- ================================================================ -->
-<h2 id="what-is-cfg">1. What is a .cfg file?</h2>
-<p>A <code>.cfg</code> file is the configuration file used by the <strong>RA-BP Quick Cheat</strong> system &mdash; a custom cheat manager built into the RA-BP fork of RetroArch. Unlike standard RetroArch <code>.cht</code> files (which use a flat <code>key = value</code> format), Quick Cheat uses a compact <strong>pipe-separated</strong> format organized into sections, allowing a single cheat to write to up to 16 memory addresses at once.</p>
+<h2 id="system">1. The RA Cheat System</h2>
+<p><strong>RA Cheat</strong> is the cheat trainer of the RA-BP fork of RetroArch. Unlike the old Quick Cheat popup, it is <strong>not built into RetroArch</strong> &mdash; it is a standalone Python tool (<code>racheat.pyw</code>, standard library only) that connects to RetroArch's built-in <strong>Network Command Interface</strong> (UDP, default port <code>55355</code>) and reads/writes the emulated memory from outside the emulator.</p>
 
-<p>Each <code>.cfg</code> file stores two things in one place: the Quick Cheat popup's window settings, and all the cheat entries for a specific game. The file is auto-saved when you close the popup and auto-loaded when you open it, so you normally never need to edit it by hand &mdash; but understanding the format lets you create, share, and fine-tune cheat files directly.</p>
+<p>This external design has practical advantages. The game keeps running while the trainer is open, so hotkeys and freezes work live (the old popup paused the core). Nothing in the RetroArch main loop depends on the tool, so it can be updated without rebuilding the emulator. And because the protocol is plain UDP, the same tool works against RetroArch running on another device &mdash; including <strong>RetroArch on Android over WiFi</strong> (start it with <code>racheat.pyw --host &lt;phone-ip&gt;</code>).</p>
+
+<h3>How it launches</h3>
+<ul>
+<li><strong>Numpad 0 in game:</strong> the RA-BP launcher (a ~150-line hook inside the fork) looks for <code>racheat.pyw</code> next to <code>retroarch.exe</code> and starts it. Pressing Num0 again just re-focuses the running instance (single-instance mutex).</li>
+<li><strong>If the network interface is off:</strong> a dialog offers to enable it &mdash; <code>network_cmd_enable</code> is switched in memory and written to <code>retroarch.cfg</code>, and the UDP command server starts immediately, no restart needed.</li>
+<li><strong>Manually:</strong> double-click <code>racheat.pyw</code> (needs Python 3.8+ installed) or run <code>racheat.pyw --host &lt;ip&gt;</code> for a remote device.</li>
+</ul>
 
 <div class="note">
-<strong>Key points:</strong>
-<ul>
-<li>Files are plain text &mdash; open them in any text editor (Notepad, VS Code, etc.)</li>
-<li>One file per game, organized by core name and ROM name</li>
-<li>Two sections: <code>[settings]</code> (optional) and <code>[cheats]</code></li>
-<li>Cheat entries use pipe <code>|</code> as a field separator &mdash; much more compact than .cht</li>
-<li>Addresses and values are in <strong>hexadecimal</strong> (no <code>0x</code> prefix), unlike .cht which uses decimal</li>
-<li>One cheat can write to up to 16 addresses simultaneously (multi-write)</li>
-<li>Comments start with <code>#</code></li>
-</ul>
-</div>
-
-<div class="note-purple">
-<strong>Quick Cheat vs RetroArch .cht:</strong> If you already know the RetroArch <code>.cht</code> format, the main differences are: (1) <code>.cfg</code> uses pipe-separated fields instead of <code>key = value</code> pairs, (2) addresses/values are <strong>hex</strong> not decimal, (3) one cheat entry can hold multiple writes, (4) hotkeys and groups are built-in, and (5) there is an optional <code>[settings]</code> section for the popup window. Quick Cheat can also import and export standard <code>.cht</code> files for interoperability.
+<strong>What RA Cheat does <em>not</em> touch:</strong> RetroAchievements. The RA-BP fork disables the hardcore restrictions locally, so achievements keep unlocking while cheats and memory writes are used. The tool only talks to the command interface (plus the public RetroAchievements web API to fetch community code notes).
 </div>
 
 <!-- ================================================================ -->
-<h2 id="location">2. File Location &amp; Naming</h2>
-<p>Quick Cheat stores each game's config in a per-game file. The path is constructed automatically from the RetroArch executable directory, the loaded core name, and the ROM name:</p>
+<h2 id="two-types">2. The Two Cheat Types (+2 Handlers)</h2>
+<p>The system has <strong>two kinds of cheats, each stored in its own config file</strong> and applied by a different engine. Both live in RA Cheat's window as two tabs: <strong>Cheat Table</strong> and <strong>RetroArch Cheats</strong>.</p>
 
-<pre><code>&lt;RetroArch_dir&gt;/quick_cheat_profiles/&lt;core_name&gt;/&lt;rom_name&gt;.cfg</code></pre>
+<table>
+<tr><th></th><th>Cheat Table</th><th>RetroArch Cheats</th></tr>
+<tr><td><strong>Tab</strong></td><td>"Cheat Table"</td><td>"RetroArch Cheats"</td></tr>
+<tr><td><strong>Who applies it</strong></td><td>RA Cheat's own engine writes the values over UDP (WRITE_CORE_RAM / WRITE_CORE_MEMORY)</td><td>RetroArch's own cheat manager applies them (once per frame), or the core itself</td></tr>
+<tr><td><strong>Config file</strong></td><td><code>quick_cheat_profiles/&lt;core&gt;/&lt;rom&gt;.cfg</code> (pipe format, this guide)</td><td>the game's <code>.cht</code> file(s) + <code>&lt;rom&gt;.racheats.json</code> (state)</td></tr>
+<tr><td><strong>Handlers</strong></td><td><strong>RETRO only</strong> (RAM writes) &mdash; since v1.9</td><td><strong>both</strong>: RETRO (RA writes memory) and EMU (core interprets the code)</td></tr>
+<tr><td><strong>Extras</strong></td><td>freeze modes, range lock, timing, hotkeys, groups, multi-write</td><td>live add/delete/toggle, multi-file groups, hotkeys, push into the live list</td></tr>
+</table>
+
+<h3>The two handlers (RetroArch concept)</h3>
+<p>Every RetroArch cheat carries a <em>handler</em> that decides who interprets it:</p>
+<ul>
+<li><strong>RETRO (handler = 1)</strong> &mdash; a plain memory write. RetroArch's cheat manager reads the address and writes the value itself, once per frame, for as long as the cheat is enabled. Works with every core.</li>
+<li><strong>EMU (handler = 0)</strong> &mdash; an <em>emulator code string</em> (Game Genie, GameShark, Pro Action Replay...). RetroArch hands the string to the core via <code>retro_cheat_set</code>; the core's own cheat engine decodes it. Only some cores implement it, and the code format is console-specific.</li>
+</ul>
+
+<div class="note-red">
+<strong>Where EMU cheats live since v1.9:</strong> the Cheat Table's engine only pokes RAM &mdash; it cannot interpret code strings, so an EMU row in the table never did anything. EMU (code) cheats therefore work <strong>exclusively through the RetroArch Cheats tab</strong>: import them in a <code>.cht</code> file or add them with the Add dialog, keep them enabled in RA's own cheat list. The Cheat Table editor no longer offers a handler choice, and EMU lines in old profiles are skipped on load (with a log note).
+</div>
+
+<div class="note-purple">
+<strong>Rule of thumb:</strong> values you want frozen or adjusted with hotkeys &rarr; Cheat Table. Game Genie / GameShark codes and anything RetroArch's own Cheats menu should show &rarr; RetroArch Cheats tab (a <code>.cht</code> file).
+</div>
+
+<!-- ================================================================ -->
+<h2 id="config-files">3. All Config Files at a Glance</h2>
+<p>Every part of the system stores its state in a plain, human-readable file &mdash; all of them can be edited or shared by hand. Cheat-related files are <strong>per game</strong>; the app settings are global.</p>
+
+<table>
+<tr><th>File</th><th>Scope</th><th>Format</th><th>What it stores</th></tr>
+<tr><td><code>quick_cheat_profiles/&lt;core&gt;/&lt;rom&gt;.cfg</code></td><td>per game</td><td>INI-like + pipe lines</td><td><strong>Cheat Table</strong>: all cheat entries + window settings (section&nbsp;4&ndash;18 of this guide)</td></tr>
+<tr><td><code>&lt;rom&gt;.cht</code></td><td>per game</td><td>RetroArch key = value</td><td><strong>RetroArch cheats</strong>: the cheats RetroArch itself loads (see the <a href="guide.html">.cht guide</a>)</td></tr>
+<tr><td><code>&lt;rom&gt;.racheats.json</code></td><td>per game</td><td>JSON</td><td><strong>RetroArch cheats tab state</strong>: which .cht files are loaded, enable flags, hotkeys (section&nbsp;19)</td></tr>
+<tr><td><code>&lt;rom&gt;.cfg.bookmarks</code></td><td>per game</td><td>JSON</td><td>Memory Viewer bookmarks (address + size + label)</td></tr>
+<tr><td><code>&lt;rom&gt;.codenotes.json</code></td><td>per game</td><td>JSON</td><td>cached RetroAchievements community code notes for the game</td></tr>
+<tr><td><code>&lt;rom&gt;.watchlist.json</code></td><td>per game</td><td>JSON</td><td>rows of the Watch List popup window (title, address, size)</td></tr>
+<tr><td><code>&lt;rom&gt;.quickcheat.json</code></td><td>per game</td><td>JSON</td><td>the 3 slots of the Quick Cheat popup window (address, value, freeze mode, bounds)</td></tr>
+<tr><td><code>racheat_settings.json</code></td><td>global</td><td>JSON</td><td>host / port / domain, window geometry, RetroAchievements account (section&nbsp;20)</td></tr>
+<tr><td><code>retroarch.cfg</code></td><td>global</td><td>RetroArch config</td><td>needs <code>network_cmd_enable = "true"</code> and <code>network_cmd_port = 55355</code> for any of this to work (the launcher can flip this for you)</td></tr>
+</table>
+
+<h3>Where the per-game files live</h3>
+<p>All per-game files sit <strong>next to each other</strong> in the profile folder of the game, so backing up or sharing a game's complete cheat setup is one copy operation:</p>
+
+<pre><code>&lt;RetroArch folder&gt;/
+  racheat.pyw
+  racheat_settings.json
+  quick_cheat_profiles/
+    genesis_plus_gx/
+      Streets of Rage.cfg              &larr; Cheat Table cheats
+      Streets of Rage.cfg.bookmarks    &larr; memory viewer bookmarks
+      Streets of Rage.racheats.json    &larr; RA-cheats tab state
+      Streets of Rage.codenotes.json   &larr; community code notes cache
+      Streets of Rage.watchlist.json   &larr; watch list popup
+      Streets of Rage.quickcheat.json  &larr; quick cheat popup slots
+  cheats/
+    genesis_plus_gx/
+      Streets of Rage.cht              &larr; RetroArch's own cheat file</code></pre>
+
+<div class="note">
+<strong>Same folder as the old Quick Cheat:</strong> profiles are still stored under <code>quick_cheat_profiles/&lt;core&gt;/&lt;rom&gt;.cfg</code>, and the file format is byte-compatible with the old popup. If your old profile was saved under a different core folder name (the old naming used the core file name), the tool finds and reuses it automatically.
+</div>
+
+<!-- ================================================================ -->
+<h2 id="location">4. Cheat Table File: Location &amp; Naming</h2>
+<p>The Cheat Table stores each game's cheats in a per-game <code>.cfg</code> file. The path is built automatically from the folder of <code>racheat.pyw</code> (the RetroArch folder when launched via Numpad-0), the core's system identifier, and the ROM name:</p>
+
+<pre><code>&lt;RetroArch folder&gt;/quick_cheat_profiles/&lt;core&gt;/&lt;rom_name&gt;.cfg</code></pre>
 
 <h3>Examples</h3>
 <table>
-<tr><th>Core</th><th>ROM</th><th>Config Path</th></tr>
-<tr><td>genesis_plus_gx_libretro.dll</td><td>Streets of Rage (USA).md</td><td><code>quick_cheat_profiles/genesis_plus_gx_libretro/Streets of Rage (USA).cfg</code></td></tr>
-<tr><td>snes9x_libretro.dll</td><td>Super Mario World.smc</td><td><code>quick_cheat_profiles/snes9x_libretro/Super Mario World.cfg</code></td></tr>
-<tr><td>nestopia_libretro.dll</td><td>Super Mario Bros. (JU).nes</td><td><code>quick_cheat_profiles/nestopia_libretro/Super Mario Bros. (JU).cfg</code></td></tr>
+<tr><th>Core (system id)</th><th>ROM</th><th>Config Path</th></tr>
+<tr><td>genesis_plus_gx</td><td>Streets of Rage (USA).md</td><td><code>quick_cheat_profiles/genesis_plus_gx/Streets of Rage (USA).cfg</code></td></tr>
+<tr><td>snes9x</td><td>Super Mario World.smc</td><td><code>quick_cheat_profiles/snes9x/Super Mario World.cfg</code></td></tr>
+<tr><td>nestopia</td><td>Super Mario Bros. (JU).nes</td><td><code>quick_cheat_profiles/nestopia/Super Mario Bros. (JU).cfg</code></td></tr>
 </table>
 
 <h3>How Names Are Derived</h3>
 <ul>
-<li><strong>Core name:</strong> The core DLL's filename without its extension. For example, <code>genesis_plus_gx_libretro.dll</code> becomes <code>genesis_plus_gx_libretro</code>.</li>
-<li><strong>ROM name:</strong> The content file's name without its extension. If the ROM is inside a zip (e.g. <code>game.zip#game.nes</code>), the part after <code>#</code> is used. Characters that are illegal in filenames (<code>&lt; &gt; : " / \ | ? *</code>) are replaced with underscores.</li>
-<li>If the core or ROM name cannot be determined (e.g. no content loaded), the word <code>default</code> is used instead.</li>
+<li><strong>Core folder:</strong> the system identifier the core reports over the network interface (e.g. <code>genesis_plus_gx</code>).</li>
+<li><strong>ROM name:</strong> the content file's name without its extension. For a ROM inside a zip (e.g. <code>game.zip#game.nes</code>), the part after <code>#</code> is used. Characters that are illegal in filenames (<code>&lt; &gt; : " / \ | ? *</code>) become underscores.</li>
+<li>If the core or ROM name cannot be determined (no content loaded), the word <code>default</code> is used.</li>
 </ul>
 
 <div class="note-yellow">
-<strong>Sidecar files:</strong> Quick Cheat may also create two files alongside the <code>.cfg</code>:
-<ul>
-<li><code>&lt;rom_name&gt;.cfg.bookmarks</code> &mdash; saved memory bookmarks (address + size + label)</li>
-<li><code>quick_cheat_log.txt</code> &mdash; a rotating log (max 1000 lines) in the RetroArch directory, useful for debugging</li>
-</ul>
+<strong>Old Quick Cheat profiles keep working:</strong> if the exact <code>&lt;core&gt;/&lt;rom&gt;.cfg</code> file does not exist but a profile for the same ROM exists under a <em>different</em> core folder (the old popup named folders after the core DLL, e.g. <code>genesis_plus_gx_libretro</code>), that file is picked up automatically &mdash; existing cheat collections survive the switch to RA Cheat untouched.
 </div>
 
 <!-- ================================================================ -->
-<h2 id="structure">3. File Structure Overview</h2>
+<h2 id="structure">5. .cfg File Structure</h2>
 <p>A <code>.cfg</code> file has two sections, both optional in principle but conventionally both present:</p>
 
 <pre><code># RA-BP Quick Cheat Config v2.2
-# This file is auto-generated. Do not edit while popup is open.
+# This file is auto-generated. Do not edit while the tool is open.
 
 [settings]
 notify=0
@@ -252,48 +318,353 @@ h=600
 
 [cheats]
 # Fields: addr|val|desc|size|type|enabled|freeze|bigendian|group|handler|code|hotkey
-# Multi-write: addr/val/size/type/bigendian can be ;-separated.
+#         |timing|notes|rlock|rmin|rmax|fmode|fmin|fmax   (last 8 optional)
 
-B832|50|Infinite HP (P1)|8|set|1|1|0|Player 1|1||0|0||0|0|0
-FF21|09|Infinite Lives (P1)|8|set|1|1|0|Player 1|1||0|0||0|0|0</code></pre>
+B832|50|Infinite HP (P1)|8|set|1|1|0|Player 1|1||0|0||0|0|0|fix|0|0
+FF21|09|Infinite Lives (P1)|8|set|1|1|0|Player 1|1||0|0||0|0|0|fix|0|0</code></pre>
 
 <div class="note">
 <strong>Section rules:</strong>
 <ul>
 <li>Section headers are lines starting with <code>[</code> &mdash; specifically <code>[settings]</code> and <code>[cheats]</code>.</li>
-<li>Lines starting with <code>#</code> are comments and are ignored.</li>
-<li>Blank lines are ignored.</li>
-<li>Settings keys (<code>notify=</code>, <code>auto_apply=</code>, <code>x=</code>, <code>y=</code>, <code>w=</code>, <code>h=</code>) are recognized anywhere <em>outside</em> the <code>[cheats]</code> section &mdash; so a file without a <code>[settings]</code> header still loads its settings.</li>
-<li><strong>Cheat lines require the <code>[cheats]</code> header.</strong> A cheat line that appears before any <code>[cheats]</code> section header is <em>silently skipped</em>. If your cheats are not loading, this is the first thing to check.</li>
+<li>Lines starting with <code>#</code> are comments and are ignored. Blank lines are ignored.</li>
+<li>Settings keys (<code>notify=</code>, <code>auto_apply=</code>, <code>x=</code>, <code>y=</code>, <code>w=</code>, <code>h=</code>) are recognized anywhere <em>outside</em> the <code>[cheats]</code> section &mdash; a file without a <code>[settings]</code> header still loads its settings.</li>
+<li><strong>Cheat lines require the <code>[cheats]</code> header.</strong> A cheat line that appears before any <code>[cheats]</code> header is <em>silently skipped</em>. If your cheats are not loading, this is the first thing to check.</li>
 </ul>
 </div>
 
 <!-- ================================================================ -->
-<h2 id="settings">4. The [settings] Section (Optional)</h2>
-<p>The <code>[settings]</code> section stores the Quick Cheat popup's window position, size, and two behavior toggles. <strong>This entire section is optional</strong> &mdash; if any key is missing, Quick Cheat uses a built-in default. If the section is absent entirely, all defaults are used. This means a <code>.cfg</code> file can contain nothing but a <code>[cheats]</code> section and Quick Cheat will still load it correctly.</p>
+<h2 id="settings">6. The [settings] Section</h2>
+<p>The <code>[settings]</code> section stores the RA Cheat window's position, size, and two behavior toggles. <strong>The whole section is optional</strong> &mdash; missing keys fall back to built-in defaults, so a <code>.cfg</code> containing nothing but a <code>[cheats]</code> section loads perfectly.</p>
 
 <h3>Settings Keys</h3>
 <table>
 <tr><th>Key</th><th>Type</th><th>Default</th><th>Description</th></tr>
-<tr><td><code>notify</code></td><td>0 or 1</td><td>1</td><td>Whether to show on-screen notifications when a hotkey fires a cheat (1 = on, 0 = off). <strong>Default is ON</strong>.</td></tr>
-<tr><td><code>auto_apply</code></td><td>0 or 1</td><td>0</td><td>Whether to automatically apply all enabled cheats when content loads (1 = on, 0 = off)</td></tr>
-<tr><td><code>x</code></td><td>int (pixels)</td><td>centered</td><td>Popup window left-edge X coordinate. If the key is missing (first run), the popup is centered on screen.</td></tr>
-<tr><td><code>y</code></td><td>int (pixels)</td><td>centered</td><td>Popup window top-edge Y coordinate. If the key is missing (first run), the popup is centered on screen.</td></tr>
-<tr><td><code>w</code></td><td>int (pixels)</td><td>built-in size</td><td>Popup window width. Clamped to a minimum of <strong>1020</strong> and a maximum of <strong>65% of the screen work-area width</strong> &mdash; a hand-written w=900 is bumped up to 1020.</td></tr>
-<tr><td><code>h</code></td><td>int (pixels)</td><td>built-in size</td><td>Popup window height. Clamped to a minimum of <strong>660</strong> and a maximum of <strong>75% of the screen work-area height</strong>. If the saved position is off-screen, the popup is re-centered.</td></tr>
+<tr><td><code>notify</code></td><td>0 or 1</td><td>1</td><td>On-screen (OSD) notifications in RetroArch when a hotkey fires a cheat. <strong>Default ON.</strong></td></tr>
+<tr><td><code>auto_apply</code></td><td>0 or 1</td><td>0</td><td>Automatically apply all enabled cheats when the game loads (the "auto-apply on game load" checkbox).</td></tr>
+<tr><td><code>x</code>, <code>y</code></td><td>int (pixels)</td><td>-1</td><td>Window position. -1/absent = the tool opens where it last was (the global geometry from <code>racheat_settings.json</code> applies).</td></tr>
+<tr><td><code>w</code>, <code>h</code></td><td>int (pixels)</td><td>0</td><td>Window size. 0 = built-in default size.</td></tr>
 </table>
 
-<div class="note-yellow">
-<strong>The [settings] section is NOT mandatory.</strong> You can omit it entirely. You can also include only some keys &mdash; missing keys fall back to their defaults. The parser even recognizes <code>notify=</code>, <code>auto_apply=</code>, <code>x=</code>, <code>y=</code>, <code>w=</code>, <code>h=</code> outside of any section, so a file with no <code>[settings]</code> header but with these keys will still load them. This is by design: the format is forgiving so hand-written files "just work."
-</div>
-
 <h3>Minimal Example (No Settings)</h3>
-<p>This is a perfectly valid <code>.cfg</code> file &mdash; no <code>[settings]</code> section at all:</p>
 <pre><code>[cheats]
 B832|50|Infinite HP (P1)|8|set|1|1|0|Player 1|1||0</code></pre>
 
-<h3>Full Example (With Settings)</h3>
+<!-- ================================================================ -->
+<h2 id="cheats">7. The [cheats] Section</h2>
+<p>Each non-comment, non-blank line in this section is one cheat entry. Fields are separated by the pipe character <code>|</code> &mdash; a single line holds an entire cheat with all its properties, which keeps large cheat files manageable and easy to share.</p>
+
+<h3>Basic Single-Write Cheat</h3>
+<pre><code>B832|50|Infinite HP (P1)|8|set|1|1|0|Player 1|1||0</code></pre>
+
+<p>This line creates a cheat that writes the hex value <code>50</code> (decimal 80) to address <code>B832</code> on every freeze tick, with the description "Infinite HP (P1)", in the "Player 1" group, and no hotkey.</p>
+
+<h3>Multi-Write Cheat</h3>
+<pre><code>B932;B9B5;BA32;BB32;BBB2;BAB2;BCB2|00|Kill All Enemies|8|set|1|0|0|Kill All|1||10</code></pre>
+
+<p>This one line creates a cheat that writes <code>00</code> to <strong>seven</strong> enemy health addresses simultaneously, assigned to the <code>Ctrl+Num1</code> hotkey (hotkey ID 10). Addresses are separated by semicolons <code>;</code>.</p>
+
+<div class="note-purple">
+<strong>Cheat Table vs RetroArch .cht:</strong> the <code>.cfg</code> pipe format is much more compact than .cht's <code>key = value</code> pairs; addresses and values are <strong>hex without a 0x prefix</strong> (the .cht format uses decimal); one entry can hold up to 16 writes; hotkeys, groups, freeze modes and range lock are built-in. The tool imports and exports standard <code>.cht</code> files in both directions (each write becomes one .cht entry).
+</div>
+
+<!-- ================================================================ -->
+<h2 id="fields">8. Field Reference (All 20 Fields)</h2>
+<p>Each cheat line has up to 20 pipe-separated fields. The first 12 are the "core" fields (v2.0). Fields 13&ndash;14 were added in v2.8, 15&ndash;17 in v3.0, and 18&ndash;20 (freeze mode + guard bounds) with RA Cheat v1.7. Fields 13&ndash;20 are <strong>optional</strong> &mdash; if missing or empty, sensible defaults are used, so old Quick Cheat files still load perfectly.</p>
+
+<table>
+<tr><th>#</th><th>Field</th><th>Type</th><th>Default</th><th>Description</th></tr>
+<tr><td><span class="field-num">1</span></td><td><code>addr</code></td><td>hex</td><td>&mdash;</td><td>Memory address (no <code>0x</code> prefix). Multi-write: <code>;</code>-separated list, up to 16 addresses.</td></tr>
+<tr><td><span class="field-num">2</span></td><td><code>val</code></td><td>hex</td><td>0</td><td>Value to write (no <code>0x</code> prefix). A single value broadcasts to all writes. Multi-write: <code>;</code>-separated.</td></tr>
+<tr><td><span class="field-num">3</span></td><td><code>desc</code></td><td>string</td><td>""</td><td>Description shown in the cheat table (escaped &mdash; see <a href="#escaping">Escape Rules</a>).</td></tr>
+<tr><td><span class="field-num">4</span></td><td><code>size</code></td><td>int</td><td>8</td><td>Bit width: <code>8</code>, <code>16</code>, or <code>32</code>. Multi-write: <code>;</code>-separated.</td></tr>
+<tr><td><span class="field-num">5</span></td><td><code>type</code></td><td>string</td><td>set</td><td>Cheat type: <code>set</code>, <code>inc</code>, <code>dec</code>, <code>eq</code>, <code>neq</code>, <code>lt</code>, <code>gt</code>. Multi-write: <code>;</code>-separated.</td></tr>
+<tr><td><span class="field-num">6</span></td><td><code>enabled</code></td><td>0/1</td><td>1</td><td>1 = cheat is active (checkbox in the On column). 0 = disabled (does nothing).</td></tr>
+<tr><td><span class="field-num">7</span></td><td><code>freeze</code></td><td>0/1</td><td>0</td><td>1 = keep re-applying at the freeze rate ("freeze" the value). 0 = one-shot. Ignored for conditional types (eq/neq/lt/gt).</td></tr>
+<tr><td><span class="field-num">8</span></td><td><code>bigendian</code></td><td>0/1</td><td>0</td><td>1 = big-endian byte order (Sega Genesis/68000). 0 = little-endian (NES, SNES, GB, PSX). Multi-write: <code>;</code>-separated.</td></tr>
+<tr><td><span class="field-num">9</span></td><td><code>group</code></td><td>string</td><td>""</td><td>Logical grouping shown in the filter dropdown (escaped). E.g. "Player 1", "Enemies", "Hotkeys".</td></tr>
+<tr><td><span class="field-num">10</span></td><td><code>handler</code></td><td>int</td><td>1</td><td>0 = EMU, 1 = RETRO. <strong>Kept for file compatibility</strong> &mdash; the Cheat Table only loads RETRO lines since v1.9; EMU lines are skipped with a log note (use the RetroArch Cheats tab for them).</td></tr>
+<tr><td><span class="field-num">11</span></td><td><code>code</code></td><td>string</td><td>""</td><td>Emulator code string, only used when <code>handler=0</code> (escaped). E.g. <code>AT4A-AA48</code>. Kept for compatibility.</td></tr>
+<tr><td><span class="field-num">12</span></td><td><code>hotkey</code></td><td>int</td><td>0</td><td>0 = none. 1&ndash;9 = Numpad 1&ndash;9. 10&ndash;18 = Ctrl+Num 1&ndash;9. 19&ndash;27 = Alt+Num 1&ndash;9.</td></tr>
+<tr><td><span class="field-num">13</span></td><td><code>timing</code></td><td>int</td><td>0</td><td><strong>(optional)</strong> Apply every N engine ticks. 0 or 1 = every tick. The freeze engine runs 25&ndash;500&nbsp;Hz (default 100&nbsp;Hz, configurable) &mdash; timing 10 at 100&nbsp;Hz re-writes the value 10 times per second.</td></tr>
+<tr><td><span class="field-num">14</span></td><td><code>notes</code></td><td>string</td><td>""</td><td><strong>(optional)</strong> Per-cheat notes for your own reference (escaped). Visible in the edit dialog.</td></tr>
+<tr><td><span class="field-num">15</span></td><td><code>range_lock</code></td><td>0/1</td><td>0</td><td><strong>(optional)</strong> 1 = enable value range lock: the current value is clamped into [range_min, range_max] instead of writing a fixed value.</td></tr>
+<tr><td><span class="field-num">16</span></td><td><code>range_min</code></td><td>hex</td><td>0</td><td><strong>(optional)</strong> Minimum allowed value (hex, no prefix). Only used when range_lock=1.</td></tr>
+<tr><td><span class="field-num">17</span></td><td><code>range_max</code></td><td>hex</td><td>0</td><td><strong>(optional)</strong> Maximum allowed value (hex, no prefix). Only used when range_lock=1.</td></tr>
+<tr><td><span class="field-num">18</span></td><td><code>fmode</code></td><td>string</td><td>fix</td><td><strong>(v1.7, optional)</strong> Freeze mode: <code>fix</code> (hold the value), <code>min</code> (keep &ge; fmin), <code>max</code> (keep &le; fmax), <code>range</code> (keep fmin..fmax). See <a href="#freeze-modes">Freeze Modes</a>.</td></tr>
+<tr><td><span class="field-num">19</span></td><td><code>fmin</code></td><td>hex</td><td>0</td><td><strong>(v1.7, optional)</strong> Guard lower bound (hex, no prefix). Used by the min/range modes.</td></tr>
+<tr><td><span class="field-num">20</span></td><td><code>fmax</code></td><td>hex</td><td>0</td><td><strong>(v1.7, optional)</strong> Guard upper bound (hex, no prefix). Used by the max/range modes.</td></tr>
+</table>
+
+<div class="note-red">
+<strong>Critical difference from .cht:</strong> in <code>.cfg</code> files, addresses and values are written in <strong>hexadecimal</strong> without the <code>0x</code> prefix (e.g. <code>B832</code>, not <code>47154</code>). In RetroArch <code>.cht</code> files the same address is written in <strong>decimal</strong> as <code>47154</code>. Always double-check which format you are editing!
+</div>
+
+<div class="note-yellow">
+<strong>Optional trailing fields:</strong> fields 13&ndash;20 can be omitted entirely. A line with only 12 fields is perfectly valid and loads with timing=0, empty notes, range_lock=0 and fmode=fix. This preserves compatibility with all old Quick Cheat files.
+</div>
+
+<!-- ================================================================ -->
+<h2 id="cheat-types">9. Cheat Types</h2>
+<p>The <code>type</code> field (field 5) controls what happens when the cheat is applied. There are seven types: three "action" types and four "conditional" types.</p>
+
+<table>
+<tr><th>Keyword</th><th>ID</th><th>Name</th><th>Description</th></tr>
+<tr><td><code>set</code></td><td>1</td><td>Set Value</td><td>Writes <code>val</code> to <code>addr</code>. The most common type &mdash; infinite health, infinite lives, unlocking characters, freezing timers.</td></tr>
+<tr><td><code>inc</code></td><td>2</td><td>Increase</td><td>Adds <code>val</code> to the current value at <code>addr</code>. For hotkey cheats, <code>val</code> is the amount added per press.</td></tr>
+<tr><td><code>dec</code></td><td>3</td><td>Decrease</td><td>Subtracts <code>val</code> from the current value. For hotkey cheats, <code>val</code> is the amount subtracted per press.</td></tr>
+<tr><td><code>eq</code></td><td>4</td><td>If Equal</td><td>Conditional (no write itself): if the current value at <code>addr</code> equals <code>val</code>, the <em>next write in the same cheat</em> runs; otherwise it is skipped.</td></tr>
+<tr><td><code>neq</code></td><td>5</td><td>If Not Equal</td><td>Conditional: if current value &ne; <code>val</code>, run the next write in the same cheat.</td></tr>
+<tr><td><code>lt</code></td><td>6</td><td>If Less Than</td><td>Conditional: if <code>val</code> &lt; current value, run the next write. <strong>Note the operand order</strong> (RetroArch semantics &mdash; see below).</td></tr>
+<tr><td><code>gt</code></td><td>7</td><td>If Greater Than</td><td>Conditional: if <code>val</code> &gt; current value, run the next write. <strong>Note the operand order</strong> (RetroArch semantics &mdash; see below).</td></tr>
+</table>
+
+<div class="note-red">
+<strong>Conditionals gate the next WRITE in the same cheat &mdash; not the next cheat entry.</strong> A failed condition skips exactly the write that follows the conditional (per-write <code>type</code> lists make this possible), and the gate resets after that. A conditional write never modifies memory itself. Also: if any write in a cheat is conditional, the <code>freeze</code> flag is forced to 0 &mdash; conditionals are evaluated when the cheat is applied (Apply button, hotkey), never in the freeze loop.
+</div>
+
+<div class="note-red">
+<strong>Operand order of <code>lt</code> / <code>gt</code> (RetroArch quirk):</strong>
+<code>lt</code> means "run the next write if <code>val</code> is less than the current value" (current &gt; val), and <code>gt</code> means "run the next write if <code>val</code> is greater than the current value" (current &lt; val). This matches RetroArch's <code>RUN_NEXT_IF_LT</code> / <code>RUN_NEXT_IF_GT</code> exactly. To express "if boss HP &lt; 50", use <code>gt</code> with val = 32 hex.
+</div>
+
+<h3>Conditional Example: "If boss HP &lt; 50, kill it"</h3>
+<pre><code># write 1: gt 32  -&gt; runs next write only if val(0x32) &gt; current, i.e. boss HP &lt; 50
+# write 2: set 00 -&gt; sets boss HP to 0, but only when the condition passed
+B932;B932|32;00|If boss HP &lt; 50, kill it|8;8|gt;set|1|0|0|Boss|1||0</code></pre>
+
+<!-- ================================================================ -->
+<h2 id="memory-sizes">10. Memory Sizes</h2>
+<p>The <code>size</code> field tells the engine how many bits to read or write at the address. <strong>Only 8, 16 and 32 are recognized</strong> &mdash; any other value (or a missing field) is treated as 8-bit.</p>
+
+<table>
+<tr><th>Value</th><th>Size</th><th>Range</th><th>Use When</th></tr>
+<tr><td><code>8</code></td><td>8-bit (1 byte)</td><td>0&ndash;255 (0&ndash;FF)</td><td><strong>Most common.</strong> Health, lives, items, level numbers, character IDs, flags</td></tr>
+<tr><td><code>16</code></td><td>16-bit (2 bytes)</td><td>0&ndash;65535 (0&ndash;FFFF)</td><td>Scores, large counters, 16-bit timers</td></tr>
+<tr><td><code>32</code></td><td>32-bit (4 bytes)</td><td>0&ndash;4294967295</td><td>Very large values, 32-bit counters</td></tr>
+</table>
+
+<div class="note">
+<strong>Addresses are RetroAchievements addresses by default.</strong> The tool reads and writes through <code>READ_CORE_RAM</code> / <code>WRITE_CORE_RAM</code> &mdash; the same address space the community code notes use. The raw core memory map (<code>READ_CORE_MEMORY</code>, including save RAM) is available as an alternative "domain" (combobox / <code>--domain map</code>). The two domains number regions differently &mdash; pick the one that matches where you found the address.
+</div>
+
+<!-- ================================================================ -->
+<h2 id="endian">11. Endianness</h2>
+<p>For 16/32-bit values, <code>bigendian</code> (field 8) selects the byte order at the target address:</p>
+<ul>
+<li><code>0</code> (default) &mdash; little-endian: NES, SNES, Game Boy, PSX, N64...</li>
+<li><code>1</code> &mdash; big-endian: Sega Genesis / Mega Drive (68000), some arcade boards.</li>
+</ul>
+<p>Multi-write cheats can mix endian flags with a <code>;</code>-separated list (<code>0;1;0</code>).</p>
+
+<!-- ================================================================ -->
+<h2 id="multi-write">12. Multi-Write Cheats</h2>
+<p>A single cheat entry can hold up to <strong>16 writes</strong>. Fields 1, 2, 4, 5 and 8 accept <code>;</code>-separated lists; the counts may differ &mdash; the loader pads short lists with their <em>first</em> value, and a single value broadcasts to every address:</p>
+
+<pre><code>B932;B9B5;BA32|00|Clear three enemy slots|8|set|1|0|0|Enemies|1||0
+B000;B100;B200|63;32;16|Set HP of three players|8| set|1|0|0|HP|1||0</code></pre>
+
+<ul>
+<li><strong>Value broadcasting:</strong> <code>B932;B9B5;BA32|00</code> writes 00 to all three addresses (a single value broadcasts).</li>
+<li><strong>Per-write values:</strong> <code>B000;B100;B200|63;32;16</code> writes 63, 32, 16 respectively.</li>
+<li><strong>Short lists pad with the first value:</strong> <code>|63;32</code> on three addresses writes 63, 32, 63.</li>
+</ul>
+
+<div class="note">
+<strong>Why one cheat with many writes?</strong> One checkbox in the table toggles the whole group at once, one hotkey fires it, and conditionals can gate individual writes inside the group (see the boss-HP example above).
+</div>
+
+<!-- ================================================================ -->
+<h2 id="hotkeys">13. Hotkeys</h2>
+<p>The <code>hotkey</code> field (field 12) binds a numpad combo to the cheat. The game does not need to be focused &mdash; the tool listens globally while it runs.</p>
+
+<table>
+<tr><th>ID</th><th>Key</th><th>ID</th><th>Key</th><th>ID</th><th>Key</th></tr>
+<tr><td>0</td><td>(none)</td><td>10</td><td>Ctrl+Num1</td><td>19</td><td>Alt+Num1</td></tr>
+<tr><td>1&ndash;9</td><td>Num1&ndash;Num9</td><td>11&ndash;18</td><td>Ctrl+Num2&ndash;Num9</td><td>20&ndash;27</td><td>Alt+Num2&ndash;Num9</td></tr>
+</table>
+
+<ul>
+<li>A hotkey <strong>applies</strong> the cheat (and toggles its checkbox) &mdash; for <code>set</code> cheats with freeze=1 it effectively toggles the freeze on/off.</li>
+<li><strong>Num0</strong> is reserved: it shows / re-focuses the RA Cheat window itself (the RA-BP launcher hook).</li>
+<li>The same slot can be shared: a Cheat Table cheat, a live RetroArch cheat and a .cht row can all sit on e.g. Num5 &mdash; one press fires all of them.</li>
+<li>Hotkeys for RetroArch-tab cheats are assigned by right-clicking a row there ("Set Hotkey...") and are stored in <code>&lt;rom&gt;.racheats.json</code> (section&nbsp;19), not in the <code>.cfg</code>.</li>
+</ul>
+
+<!-- ================================================================ -->
+<h2 id="escaping">14. Escape Rules</h2>
+<p>The text fields (desc, group, notes, code) share a small escape scheme so that pipes and backslashes can appear inside values:</p>
+
+<table>
+<tr><th>You want</th><th>Write</th></tr>
+<tr><td>a pipe <code>|</code> inside text</td><td><code>\p</code></td></tr>
+<tr><td>a backslash <code>\</code></td><td><code>\\</code></td></tr>
+<tr><td>a semicolon <code>;</code> inside <em>list</em> fields</td><td>escape it in the value as above; inside desc/notes a plain <code>;</code> is fine</td></tr>
+</table>
+
+<pre><code>Damage\pArmor|...      &larr; description "Damage|Armor"
+C:\\Games\\SOR|...      &larr; text with backslashes</code></pre>
+
+<!-- ================================================================ -->
+<h2 id="timing-notes">15. Timing &amp; Notes</h2>
+<h3>Timing Interval (field 13)</h3>
+<p>The freeze engine re-applies frozen cheats on its own thread at a configurable rate &mdash; 25 to 500 ticks per second, default <strong>100&nbsp;Hz</strong> (combobox in the tool; on Windows the engine uses a 1&nbsp;ms timer resolution for accurate high rates). The <code>timing</code> field slows an individual cheat down: <code>timing = N</code> re-writes only every Nth engine tick. Use it when a game objects to a value being rewritten at full rate (flickering UI, soft-locks), e.g. slowly regenerating HP instead of hard-freezing it.</p>
+
+<h3>Per-Cheat Notes (field 14)</h3>
+<p>Free-form text for your own reference, visible in the edit dialog. Handy for provenance: which code note the address came from, what the value means, who found it.</p>
+
+<!-- ================================================================ -->
+<h2 id="range-lock">16. Value Range Lock</h2>
+<p>A range-locked cheat does not write a fixed value. Instead, every tick it <strong>reads the current value and clamps it into [range_min, range_max]</strong> &mdash; the game can still move the value around freely inside the window, but cannot push it outside.</p>
+
+<h3>The Three Fields</h3>
+<table>
+<tr><th>Field</th><th>Meaning</th></tr>
+<tr><td><code>range_lock</code> (15)</td><td>1 = enable the clamp behavior</td></tr>
+<tr><td><code>range_min</code> (16)</td><td>lower bound (hex)</td></tr>
+<tr><td><code>range_max</code> (17)</td><td>upper bound (hex)</td></tr>
+</table>
+
+<h3>Example 1: HP regen &mdash; +1 per tick, capped at 99</h3>
+<pre><code># every tick: value = min(value + 1, 99)  -&gt; recovers but never exceeds 99
+B832|01|HP regen (cap 99)|8|inc|1|1|0|Player 1|1||0|0||1|0|63</code></pre>
+
+<h3>Example 2: HP drain &mdash; -1 per tick, floored at 50</h3>
+<pre><code># every tick: value = max(value - 1, 50)  -&gt; hard mode, but never below 50
+B832|01|HP drain (floor 50)|8|dec|1|1|0|Player 1|1||0|0||1|32|FFFF</code></pre>
+
+<!-- ================================================================ -->
+<h2 id="freeze-modes">17. Freeze Modes (v1.7)</h2>
+<p>Fields 18&ndash;20 refine what "freeze" means for a cheat. The four modes:</p>
+
+<table>
+<tr><th>fmode</th><th>Name in the UI</th><th>Behavior per freeze tick</th></tr>
+<tr><td><code>fix</code></td><td>Hold value</td><td>The classic freeze: rewrite <code>val</code> every tick (or every N ticks with timing).</td></tr>
+<tr><td><code>min</code></td><td>Keep &ge; min</td><td>Write <code>val</code> only when the current value dropped <em>below</em> the guard &mdash; otherwise leave it alone. Health that dips but recovers instantly to the floor.</td></tr>
+<tr><td><code>max</code></td><td>Keep &le; max</td><td>Write <code>val</code> only when the current value rose <em>above</em> the guard. A speed cap that never fights the game while you are under it.</td></tr>
+<tr><td><code>range</code></td><td>Keep in min&ndash;max</td><td>The value may move freely between fmin and fmax; only a value <em>outside</em> the band is written back (to val). Boss HP you can damage, but never kill past the floor / heal past the ceiling.</td></tr>
+</table>
+
+<pre><code># HP may fluctuate between 32 (50) and 63 (99); outside values snap back
+B832|50|Guarded HP 50..99|8|set|1|1|0|Player 1|1||0|0||0|0|0|range|32|63</code></pre>
+
+<div class="note-yellow">
+<strong>Guard modes vs range lock:</strong> range lock (fields 15&ndash;17) <em>clamps toward the bounds</em> (writes the bound value), which suits regen/drain effects. Freeze guard modes (fields 18&ndash;20) <em>write the cheat's own val</em> only when the guard is violated, which suits "keep it in a band" effects. Old lines without fmode load as <code>fix</code> &mdash; the classic behavior.
+</div>
+
+<!-- ================================================================ -->
+<h2 id="handlers">18. Handlers: RETRO vs EMU (where each lives now)</h2>
+
+<h3>RETRO Handler (handler = 1)</h3>
+<p>A plain memory write. In the <strong>Cheat Table</strong> the tool's engine performs it over UDP; in the <strong>RetroArch Cheats</strong> tab RetroArch's own cheat manager performs it once per frame. Same address space, same semantics, two different appliers &mdash; the table gives you freeze modes, timing and multi-write; RA's manager gives you the exact same per-frame behavior as a cheat added in RA's own Cheats menu.</p>
+
+<h3>EMU Handler (handler = 0)</h3>
+<p>An emulator code string (Game Genie, GameShark, Pro Action Replay). It only works when <strong>RetroArch's cheat manager</strong> hands it to the core (<code>retro_cheat_set</code>) &mdash; which is why, since v1.9, the Cheat Table does not load or create EMU entries at all. EMU cheats belong in the <strong>RetroArch Cheats</strong> tab:</p>
+
+<ul>
+<li>import them in a <code>.cht</code> file (the tab auto-locates and loads it), or add them with its Add dialog;</li>
+<li>they appear in RA's own Cheats menu immediately; toggling them here toggles them in RetroArch;</li>
+<li>legacy <code>.cfg</code> profiles still load &mdash; EMU lines are skipped with a log note instead of becoming dead entries.</li>
+</ul>
+
+<h3>EMU Cheat Example (Game Genie for Genesis)</h3>
+<pre><code># as a .cfg line (legacy - SKIPPED by the Cheat Table since v1.9):
+ATBT-AA4C|0|Infinite continues (GG)|8|set|1|0|0|Cheats|0|ATBT-AA4C|0
+
+# instead, put it in the game's .cht file (RetroArch format):
+cheat0_desc = "Infinite continues (GG)"
+cheat0_code = "ATBT-AA4C"
+cheat0_enable = "false"
+cheat0_handler = "0"</code></pre>
+
+<!-- ================================================================ -->
+<h2 id="racheats">19. RetroArch Cheats State (<code>.racheats.json</code>)</h2>
+<p>The <strong>RetroArch Cheats tab</strong> shows two things: the cheats currently live in RetroArch's own cheat manager (the "Live in RetroArch" group), and the contents of the game's <code>.cht</code> file(s) &mdash; each file as its own collapsible <code>From &lt;name&gt;.cht</code> group. The cheats themselves live in the <code>.cht</code> files (standard RetroArch format, see the <a href="guide.html">.cht guide</a>); RA Cheat stores its own <em>state</em> for that tab in a small JSON side file next to the Cheat Table profile:</p>
+
+<pre><code>&lt;RetroArch folder&gt;/quick_cheat_profiles/&lt;core&gt;/&lt;rom&gt;.racheats.json</code></pre>
+
+<h3>Keys</h3>
+<table>
+<tr><th>Key</th><th>Type</th><th>Meaning</th></tr>
+<tr><td><code>cht</code></td><td>string</td><td>Absolute path of the <strong>primary</strong> .cht file (auto-located next to the ROM and in <code>cheats/&lt;core&gt;/</code>; re-located automatically on every game change).</td></tr>
+<tr><td><code>cht_extra</code></td><td>array of strings</td><td>Paths of <strong>extra</strong> .cht files added with "Browse .cht..." &mdash; each renders as its own group. Entries that no longer exist are dropped with a log note.</td></tr>
+<tr><td><code>enabled</code></td><td>object</td><td>Enable flags of the .cht rows, keyed <code>"&lt;file&gt;:&lt;index&gt;"</code> &mdash; file 0 is the primary, the index is the <code>cheatN_</code> number in the file. Example: <code>{"0:0": true, "0:1": false, "1:0": true}</code>. Bare <code>"&lt;index&gt;"</code> keys from v1.8 files still load (treated as file 0).</td></tr>
+<tr><td><code>hotkeys</code></td><td>object</td><td>Hotkey assignments of the RA-tab rows, keyed by a stable content identity &rarr; hotkey ID (1&ndash;27, same numbering as the table). Keys: <code>"L|retro|&lt;addr-hex&gt;|&lt;value-hex&gt;"</code> and <code>"L|emu|&lt;code&gt;"</code> for live cheats, <code>"F&lt;file&gt;|&lt;index&gt;"</code> for .cht rows. Content keys survive RetroArch re-indexing its live list when cheats are deleted.</td></tr>
+</table>
+
+<h3>Full Example</h3>
+<pre><code>{
+  "cht": "C:\\RetroArch\\cheats\\genesis_plus_gx\\Streets of Rage.cht",
+  "cht_extra": [
+    "C:\\RetroArch\\cheats\\genesis_plus_gx\\Streets of Rage (Rev A).cht"
+  ],
+  "enabled": {"0:0": true, "0:1": false, "1:0": true},
+  "hotkeys": {
+    "L|retro|b832|50": 3,
+    "F0|1": 5
+  }
+}</code></pre>
+
+<div class="note">
+<strong>What the state file does not contain:</strong> the cheat definitions themselves &mdash; descriptions, codes, addresses all come from the <code>.cht</code> files. "Save to .cht" writes the enable flags back into <em>every</em> loaded .cht file; the JSON only remembers which files, which flags and which hotkeys.
+</div>
+
+<div class="note-purple">
+<strong>Push direction:</strong> "Apply Checked" pushes checked .cht entries <em>into</em> RetroArch's live list (duplicate-safe &mdash; entries already present are skipped and tagged green). Pushed RETRO entries are then applied by RetroArch itself, once per frame, exactly like a cheat added in RA's own Cheats menu. Live rows can also be toggled (CHEAT_SET), deleted (CHEAT_DEL) or created (Add Cheat / CHEAT_ADD) directly from the tab; a live row's hotkey toggles it inside RetroArch.
+</div>
+
+<!-- ================================================================ -->
+<h2 id="app-settings">20. Global Settings (<code>racheat_settings.json</code>)</h2>
+<p>A single JSON file next to <code>racheat.pyw</code> (i.e. the RetroArch folder) remembers everything global; it is plain JSON and safe to edit while the tool is closed:</p>
+
+<table>
+<tr><th>Key</th><th>Meaning</th></tr>
+<tr><td><code>host</code>, <code>port</code></td><td>Where to connect (default <code>127.0.0.1</code> / <code>55355</code>). For RetroArch on Android over WiFi, set the phone's IP &mdash; or just start once with <code>racheat.pyw --host &lt;ip&gt;</code> and it is remembered.</td></tr>
+<tr><td><code>domain</code></td><td><code>"rc"</code> (default) = RetroAchievements address space (READ_CORE_RAM); <code>"map"</code> = raw core memory map (READ_CORE_MEMORY).</td></tr>
+<tr><td><code>w</code>, <code>h</code>, <code>x</code>, <code>y</code></td><td>Main window size and position, restored on every start (so the Numpad-0 launcher opens the tool exactly where you left it).</td></tr>
+<tr><td><code>ra_user</code>, <code>ra_token</code>, <code>ra_webkey</code></td><td>RetroAchievements account for the Code Notes tab (login token and the Web API key from your RA settings page). Only the returned token is stored &mdash; never your password.</td></tr>
+<tr><td><code>ra_follow</code></td><td>1 = "Follow Now Playing": auto-switch the code notes whenever a different game is loaded.</td></tr>
+</table>
+
+<!-- ================================================================ -->
+<h2 id="workflow">21. Creating Cheats with RA Cheat</h2>
+<p>You normally never write these files by hand &mdash; the tool writes them. Three workflows cover everything:</p>
+
+<h3>A. Memory Scanner &rarr; Cheat Table (find unknown values)</h3>
+<ol>
+<li>Open RA Cheat (Numpad&nbsp;0) while the game runs.</li>
+<li><strong>Scanner</strong> tab: pick the value type (byte..float) and "First Scan" with the current value &mdash; or <em>unknown initial value</em>, then "Next Scan" with increased / decreased / changed / unchanged after you change the value in game.</li>
+<li>Repeat Next Scans until a few candidates remain; double-click one to add it to the Cheat Table (pre-filled).</li>
+<li>Tick its checkbox, give it a description, maybe freeze + a hotkey. The <code>.cfg</code> file is written automatically.</li>
+</ol>
+
+<h3>B. Community Code Notes &rarr; Cheat Table (known addresses)</h3>
+<ol>
+<li><strong>Code Notes</strong> tab: "Auto Detect" (or log in once with your RA account and let "Follow Now Playing" find the game).</li>
+<li>The table lists every community-documented address with a <strong>live Value column</strong>, polled once per second.</li>
+<li><strong>Quick Set (v1.9.1):</strong> each row has a Set box next to the value &mdash; type a byte (<code>0-255</code>, <code>0xFF</code> or <code>FF</code>) and press Set (or Enter) to write it immediately for quick experiments, without creating any cheat entry.</li>
+<li>Double-click a note to open the cheat editor pre-filled with that address and its current value &rarr; OK adds it to the Cheat Table.</li>
+</ol>
+
+<h3>C. .cht files / Game Genie &rarr; RetroArch Cheats tab</h3>
+<ol>
+<li>Put cheats in a standard <code>.cht</code> file (hand-written or made with the <a href="index.html">RA CHT Editor</a>) and drop it next to the ROM or in <code>cheats/&lt;core&gt;/</code> &mdash; the tab auto-loads it; "Browse .cht..." adds more files, each as its own group.</li>
+<li>Tick the entries you want and press <strong>Apply Checked</strong> &mdash; they are pushed into RetroArch's live list and applied by RA itself (RETRO once per frame; EMU by the core).</li>
+<li>Or use <strong>Add Cheat</strong> in the tab to create a live RETRO write or an EMU code cheat directly.</li>
+<li>Right-click &rarr; <strong>Set Hotkey</strong> to toggle any of them from the game with Num / Ctrl+Num / Alt+Num.</li>
+</ol>
+
+<div class="note-yellow">
+<strong>Moving cheats between the two types:</strong> right-click a live RA cheat &rarr; "Copy to Cheat Table" (RETRO writes only &mdash; EMU rows are skipped with an explanation). The Cheat Table's "Export .cht" converts table entries into a standard .cht file the RetroArch Cheats tab (or any RetroArch) can load.
+</div>
+
+<!-- ================================================================ -->
+<h2 id="example">22. Complete Example: Streets of Rage</h2>
+<p>Three files together = the full cheat setup for one game:</p>
+
+<h3>quick_cheat_profiles/genesis_plus_gx/Streets of Rage.cfg</h3>
 <pre><code># RA-BP Quick Cheat Config v2.2
+# This file is auto-generated. Do not edit while the tool is open.
 
 [settings]
 notify=1
@@ -304,579 +675,116 @@ w=1000
 h=700
 
 [cheats]
-B832|50|Infinite HP (P1)|8|set|1|1|0|Player 1|1||0</code></pre>
-
-<!-- ================================================================ -->
-<h2 id="cheats">5. The [cheats] Section</h2>
-<p>The <code>[cheats]</code> section is where the actual cheat entries live. Each non-comment, non-blank line in this section is one cheat entry. Fields are separated by the pipe character <code>|</code>. This is far more compact than the RetroArch <code>.cht</code> format &mdash; a single line holds an entire cheat with all its properties.</p>
-
-<h3>Basic Single-Write Cheat</h3>
-<pre><code>B832|50|Infinite HP (P1)|8|set|1|1|0|Player 1|1||0</code></pre>
-
-<p>This single line creates a cheat that writes the hex value <code>50</code> (decimal 80) to address <code>B832</code> every frame, with the description "Infinite HP (P1)", in the "Player 1" group, using the RETRO memory-write handler, and no hotkey.</p>
-
-<h3>Multi-Write Cheat</h3>
-<pre><code>B932;B9B5;BA32;BB32;BBB2;BAB2;BCB2|00|Kill All Enemies|8|set|1|0|0|Kill All|1||10</code></pre>
-
-<p>This one line creates a cheat that writes <code>00</code> to <strong>seven</strong> enemy health addresses simultaneously, assigned to the <code>Ctrl+Num1</code> hotkey (hotkey ID 10). The addresses are separated by semicolons <code>;</code>.</p>
-
-<div class="note">
-<strong>Why pipe-separated?</strong> The pipe format was chosen for compactness. A 12-field cheat that would take 12 lines in <code>.cht</code> format fits on a single line in <code>.cfg</code>. This makes large cheat files (50+ entries) manageable and easy to share in chat or forum posts.
-</div>
-
-<!-- ================================================================ -->
-<h2 id="fields">6. Field Reference (All 17 Fields)</h2>
-<p>Each cheat line has up to 17 pipe-separated fields. The first 12 are the "core" fields (v2.0). Fields 13&ndash;14 were added in v2.8, and fields 15&ndash;17 in v3.0. Fields 13&ndash;17 are <strong>optional</strong> &mdash; if they are missing or empty, sensible defaults are used. This means old v2.0 cheat files still load perfectly in v3.6.</p>
-
-<table>
-<tr><th>#</th><th>Field</th><th>Type</th><th>Default</th><th>Description</th></tr>
-<tr><td><span class="field-num">1</span></td><td><code>addr</code></td><td>hex</td><td>&mdash;</td><td>Memory address (no <code>0x</code> prefix). Multi-write: <code>;</code>-separated list, up to 16 addresses.</td></tr>
-<tr><td><span class="field-num">2</span></td><td><code>val</code></td><td>hex</td><td>0</td><td>Value to write (no <code>0x</code> prefix). Single value broadcasts to all writes. Multi-write: <code>;</code>-separated.</td></tr>
-<tr><td><span class="field-num">3</span></td><td><code>desc</code></td><td>string</td><td>""</td><td>Description shown in the cheat list (escaped &mdash; see <a href="#escaping">Escape Rules</a>).</td></tr>
-<tr><td><span class="field-num">4</span></td><td><code>size</code></td><td>int</td><td>8</td><td>Bit width: <code>8</code>, <code>16</code>, or <code>32</code>. Multi-write: <code>;</code>-separated.</td></tr>
-<tr><td><span class="field-num">5</span></td><td><code>type</code></td><td>string</td><td>set</td><td>Cheat type: <code>set</code>, <code>inc</code>, <code>dec</code>, <code>eq</code>, <code>neq</code>, <code>lt</code>, <code>gt</code>. Multi-write: <code>;</code>-separated.</td></tr>
-<tr><td><span class="field-num">6</span></td><td><code>enabled</code></td><td>0/1</td><td>1</td><td>1 = cheat is active (will apply). 0 = disabled (does nothing).</td></tr>
-<tr><td><span class="field-num">7</span></td><td><code>freeze</code></td><td>0/1</td><td>0</td><td>1 = re-apply every frame ("freeze" the value). 0 = one-shot only. Ignored for conditional types (eq/neq/lt/gt).</td></tr>
-<tr><td><span class="field-num">8</span></td><td><code>bigendian</code></td><td>0/1</td><td>0</td><td>1 = big-endian byte order (Sega Genesis/68000). 0 = little-endian (NES, SNES, GB, PSX). Multi-write: <code>;</code>-separated.</td></tr>
-<tr><td><span class="field-num">9</span></td><td><code>group</code></td><td>string</td><td>""</td><td>Logical grouping shown in the filter dropdown (escaped). E.g. "Player 1", "Enemies", "Hotkeys".</td></tr>
-<tr><td><span class="field-num">10</span></td><td><code>handler</code></td><td>int</td><td>1</td><td>0 = EMU (Game Genie/GameShark code string). 1 = RETRO (direct memory write). When the field is missing or empty it defaults to <strong>1 (RETRO)</strong> &mdash; most cheats use 1.</td></tr>
-<tr><td><span class="field-num">11</span></td><td><code>code</code></td><td>string</td><td>""</td><td>Emulator code string, only used when <code>handler=0</code> (escaped). E.g. <code>AT4A-AA48</code>.</td></tr>
-<tr><td><span class="field-num">12</span></td><td><code>hotkey</code></td><td>int</td><td>0</td><td>0 = none. 1&ndash;9 = Numpad 1&ndash;9. 10&ndash;18 = Ctrl+Num 1&ndash;9. 19&ndash;27 = Alt+Num 1&ndash;9.</td></tr>
-<tr><td><span class="field-num">13</span></td><td><code>timing</code></td><td>int</td><td>0</td><td><strong>(v2.8, optional)</strong> Apply every N frames. 0 or 1 = every frame. 2 = every 2nd frame, etc. Slows down freeze rate.</td></tr>
-<tr><td><span class="field-num">14</span></td><td><code>notes</code></td><td>string</td><td>""</td><td><strong>(v2.8, optional)</strong> Per-cheat notes for your own reference (escaped). Not shown in the list, but visible in the edit dialog.</td></tr>
-<tr><td><span class="field-num">15</span></td><td><code>range_lock</code></td><td>0/1</td><td>0</td><td><strong>(v3.0, optional)</strong> 1 = enable value range lock. When on, Quick Cheat reads the current value and clamps it to [range_min, range_max] instead of writing a fixed value.</td></tr>
-<tr><td><span class="field-num">16</span></td><td><code>range_min</code></td><td>hex</td><td>0</td><td><strong>(v3.0, optional)</strong> Minimum allowed value (hex, no prefix). Only used when range_lock=1.</td></tr>
-<tr><td><span class="field-num">17</span></td><td><code>range_max</code></td><td>hex</td><td>0</td><td><strong>(v3.0, optional)</strong> Maximum allowed value (hex, no prefix). Only used when range_lock=1.</td></tr>
-</table>
-
-<div class="note-red">
-<strong>Critical difference from .cht:</strong> In Quick Cheat <code>.cfg</code> files, addresses and values are written in <strong>hexadecimal</strong> without the <code>0x</code> prefix (e.g. <code>B832</code>, not <code>47154</code>). In RetroArch <code>.cht</code> files, the same address is written in <strong>decimal</strong> as <code>47154</code>. Always double-check which format you are editing!
-</div>
-
-<div class="note-yellow">
-<strong>Optional trailing fields:</strong> Fields 13&ndash;17 can be omitted entirely. A cheat line with only 12 fields is perfectly valid and will load with timing=0, empty notes, and range_lock=0. This preserves backwards compatibility with v2.0 cheat files.
-</div>
-
-<!-- ================================================================ -->
-<h2 id="cheat-types">7. Cheat Types</h2>
-<p>The <code>type</code> field (field 5) controls what happens when the cheat is applied. There are seven types: three "action" types and four "conditional" types.</p>
-
-<table>
-<tr><th>Keyword</th><th>ID</th><th>Name</th><th>Description</th></tr>
-<tr><td><code>set</code></td><td>1</td><td>Set Value</td><td>Writes <code>val</code> to <code>addr</code>. This is the most common type &mdash; use it for infinite health, infinite lives, unlocking characters, freezing timers, etc.</td></tr>
-<tr><td><code>inc</code></td><td>2</td><td>Increase</td><td>Adds <code>val</code> to the current value at <code>addr</code>. For hotkey cheats, <code>val</code> is the amount added per press.</td></tr>
-<tr><td><code>dec</code></td><td>3</td><td>Decrease</td><td>Subtracts <code>val</code> from the current value. For hotkey cheats, <code>val</code> is the amount subtracted per press.</td></tr>
-<tr><td><code>eq</code></td><td>4</td><td>If Equal</td><td>Conditional (no write happens): if the current value at <code>addr</code> equals <code>val</code>, the <em>next write in the same cheat</em> runs; otherwise that next write is skipped.</td></tr>
-<tr><td><code>neq</code></td><td>5</td><td>If Not Equal</td><td>Conditional: if current value &ne; <code>val</code>, run the next write in the same cheat. Otherwise skip it.</td></tr>
-<tr><td><code>lt</code></td><td>6</td><td>If Less Than</td><td>Conditional: if <code>val</code> &lt; current value, run the next write in the same cheat. <strong>Note the operand order</strong> (RetroArch semantics &mdash; see warning below).</td></tr>
-<tr><td><code>gt</code></td><td>7</td><td>If Greater Than</td><td>Conditional: if <code>val</code> &gt; current value, run the next write in the same cheat. <strong>Note the operand order</strong> (RetroArch semantics &mdash; see warning below).</td></tr>
-</table>
-
-<div class="note-yellow">
-<strong>When to use each:</strong>
-<ul>
-<li><strong>set</strong> &mdash; Infinite health, infinite lives, infinite ammo, unlock characters, freeze timer, stage select, difficulty change</li>
-<li><strong>inc / dec</strong> &mdash; Hotkey-triggered adjustments: "HP +10", "Score +10000", "Lives -1". Also useful for one-shot score boosts.</li>
-<li><strong>eq / neq / lt / gt</strong> &mdash; Conditional chains <em>within one multi-write cheat</em>. The conditional write is evaluated first and gates the write that follows it in the same cheat line. Example: "if boss health &lt; 50, set boss health to 0" is a single cheat with two writes (see below).</li>
-</ul>
-</div>
-
-<div class="note-red">
-<strong>Conditionals gate the next WRITE in the same cheat &mdash; not the next cheat entry.</strong>
-Unlike RetroArch's <code>.cht</code> format (where a conditional skips the next cheat <em>entry</em> in the list), Quick Cheat conditionals work <em>within</em> a single cheat line: a failed condition skips exactly the write that follows the conditional (per-write <code>type</code> lists make this possible), and the gate resets after that. A conditional write never modifies memory itself.
-</div>
-
-<div class="note-red">
-<strong>Operand order of <code>lt</code> / <code>gt</code> (RetroArch quirk):</strong>
-<code>lt</code> means "run the next write if <code>val</code> is less than the current value" (i.e. current &gt; val), and <code>gt</code> means "run the next write if <code>val</code> is greater than the current value" (i.e. current &lt; val). This is the opposite of what the names suggest, but it matches RetroArch's <code>RUN_NEXT_IF_LT</code> / <code>RUN_NEXT_IF_GT</code> implementation exactly. To express "if boss HP &lt; 50", use <code>gt</code> with val = 32 hex (50 decimal).
-</div>
-
-<h3>Conditional Example: "If boss HP &lt; 50, kill it"</h3>
-<pre><code># write 1: gt 32  -> runs next write only if val(0x32) > current, i.e. boss HP &lt; 50
-# write 2: set 00 -> sets boss HP to 0, but only when the condition passed
+# infinite HP: freeze 80 (0x50) on the 16-bit HP word, big-endian (68000)
+B832|50|Infinite HP (P1)|16|set|1|1|1|Player 1|1||0|0||0|0|0|fix|0|0
+# lives: guarded - may swing 1..9, anything else snaps back to 9
+FFCB|09|Lives 1-9 (P1)|8|set|1|1|0|Player 1|1||1|0||0|0|0|range|1|9
+# score: +1000 (0x3E8) per press on Num4, 16-bit big-endian
+FF44|3E8|Score +1000|16|inc|1|0|1|Player 1|1||4|0||0|0|0|fix|0|0
+# one press kills every enemy on screen (Ctrl+Num1)
+B932;B9B5;BA32;BB32;BBB2;BAB2;BCB2|00|Kill All Enemies|8|set|1|0|0|Kill All|1||10
+# if boss HP &lt; 50 (0x32): set it to 0 - one line, two writes
 B932;B932|32;00|If boss HP &lt; 50, kill it|8;8|gt;set|1|0|0|Boss|1||0</code></pre>
 
-<div class="note">
-<strong>Conditionals and freeze:</strong> If any write in a cheat uses a conditional type (eq/neq/lt/gt), the <code>freeze</code> flag is automatically forced to 0. Conditionals are evaluated whenever the cheat is applied &mdash; via the <strong>Apply</strong> button, <strong>Ctrl+Num0</strong>, or a matching <strong>hotkey</strong> &mdash; but never in the per-frame freeze loop.
-</div>
+<h3>quick_cheat_profiles/genesis_plus_gx/Streets of Rage.racheats.json</h3>
+<pre><code>{
+  "cht": "C:\\RetroArch\\cheats\\genesis_plus_gx\\Streets of Rage.cht",
+  "cht_extra": [],
+  "enabled": {"0:0": true, "0:1": false},
+  "hotkeys": {"F0|0": 5}
+}</code></pre>
 
-<!-- ================================================================ -->
-<h2 id="memory-sizes">8. Memory Sizes</h2>
-<p>The <code>size</code> field (field 4) tells Quick Cheat how many bits to read or write at the address. Unlike RetroArch's <code>.cht</code> format (which uses codes 0&ndash;5), Quick Cheat uses the actual bit count for clarity. <strong>Only 8, 16, and 32 are recognized</strong> &mdash; any other value (or a missing size field) is treated as 8-bit.</p>
+<h3>cheats/genesis_plus_gx/Streets of Rage.cht (RetroArch format)</h3>
+<pre><code>cheats = 2
 
-<table>
-<tr><th>Value</th><th>Size</th><th>Range</th><th>Use When</th></tr>
-<tr><td><code>8</code></td><td>8-bit (1 byte)</td><td>0&ndash;255 (0&ndash;FF)</td><td><strong>Most common.</strong> Health, lives, items, level numbers, character IDs, flags</td></tr>
-<tr><td><code>16</code></td><td>16-bit (2 bytes)</td><td>0&ndash;65535 (0&ndash;FFFF)</td><td>Scores, large counters, 16-bit timers, pair-of-bytes values</td></tr>
-<tr><td><code>32</code></td><td>32-bit (4 bytes)</td><td>0&ndash;4294967295</td><td>Very large values (rare on 8/16-bit consoles; more common on PSX/N64)</td></tr>
-</table>
+cheat0_desc = "Infinite continues"
+cheat0_code = ""
+cheat0_enable = "true"
+cheat0_handler = "1"
+cheat0_cheat_type = "1"
+cheat0_value = "9"
+cheat0_address = "65515"
+cheat0_memory_search_size = "3"
+cheat0_repeat_count = "1"
+cheat0_repeat_add_to_value = "0"
+cheat0_repeat_add_to_address = "1"
 
-<div class="note-yellow">
-<strong>Endianness matters for 16-bit and 32-bit.</strong> For 8-bit writes, the <code>bigendian</code> field is ignored. For 16/32-bit, you must set <code>bigendian</code> correctly or your cheat will write to the wrong bytes. See the next section.
-</div>
-
-<!-- ================================================================ -->
-<h2 id="endian">9. Endianness</h2>
-<p>Multi-byte values can be stored in memory in two orders. "Big-endian" stores the most significant byte first (lowest address). "Little-endian" stores the least significant byte first. If you get this wrong on a 16-bit or 32-bit cheat, the value will be garbled or written to the wrong half of the pair.</p>
-
-<table>
-<tr><th>Console</th><th>Endianness</th><th><code>bigendian</code> field</th></tr>
-<tr><td>Sega Genesis / Mega Drive (68000)</td><td>Big-endian</td><td><code>1</code></td></tr>
-<tr><td>Arcade (varies by board)</td><td>Often big-endian</td><td><code>1</code> (try first)</td></tr>
-<tr><td>NES</td><td>Little-endian</td><td><code>0</code></td></tr>
-<tr><td>SNES</td><td>Little-endian</td><td><code>0</code></td></tr>
-<tr><td>Game Boy / GBC / GBA</td><td>Little-endian</td><td><code>0</code></td></tr>
-<tr><td>PlayStation / PS2</td><td>Little-endian</td><td><code>0</code></td></tr>
-<tr><td>Nintendo 64</td><td>Big-endian</td><td><code>1</code></td></tr>
-</table>
+cheat1_desc = "Infinite continues (GG)"
+cheat1_code = "ATBT-AA4C"
+cheat1_enable = "false"
+cheat1_handler = "0"</code></pre>
 
 <div class="note">
-<strong>Rule of thumb:</strong> If your 8-bit cheat works but your 16-bit cheat produces weird results, toggle <code>bigendian</code>. For 8-bit cheats, this field does nothing. For multi-write cheats, <code>bigendian</code> can be <code>;</code>-separated if different writes need different byte orders (rare).
+<strong>Reading the example:</strong> the Cheat Table (<code>.cfg</code>) holds the tuned trainer cheats &mdash; freeze modes, guards, hotkeys, conditional chains. The <code>.cht</code> holds what RetroArch itself should apply every frame plus the Game Genie code. The <code>.racheats.json</code> remembers which .cht file is loaded, that entry 0 is enabled and entry 1 is not, and that Num5 toggles entry 0.
 </div>
 
 <!-- ================================================================ -->
-<h2 id="multi-write">10. Multi-Write Cheats</h2>
-<p>One of Quick Cheat's signature features is <strong>multi-write</strong>: a single cheat entry can write to up to 16 different memory addresses in one operation. This is perfect for "kill all enemies" (write 0 to 7 enemy health addresses), "max all stats" (write max to strength, speed, defense, etc.), or "clear all stage flags" simultaneously.</p>
-
-<h3>How It Works</h3>
-<p>Fields that support multi-write use semicolons <code>;</code> to separate per-write values:</p>
-<ul>
-<li><strong>addr</strong> (field 1): <code>B932;B9B5;BA32</code> = three addresses</li>
-<li><strong>val</strong> (field 2): <code>00;01;02</code> = three different values, one per address</li>
-<li><strong>size</strong> (field 4): <code>8;8;16</code> = per-write sizes (usually all the same)</li>
-<li><strong>type</strong> (field 5): <code>set;set;set</code> = per-write types (usually all the same)</li>
-<li><strong>bigendian</strong> (field 8): <code>0;0;1</code> = per-write endianness (usually all the same)</li>
-</ul>
-
-<h3>Value Broadcasting</h3>
-<p>If <code>val</code> has only <strong>one</strong> value but <code>addr</code> has multiple, that single value is broadcast to all writes. Same for <code>size</code>, <code>type</code>, and <code>bigendian</code>. This means you usually only need to specify one value even for multi-write cheats.</p>
-
-<table>
-<tr><th>addr field</th><th>val field</th><th>Result</th></tr>
-<tr><td><code>B932;B9B5;BA32</code></td><td><code>00</code></td><td>Write 00 to all three addresses (broadcast)</td></tr>
-<tr><td><code>B932;B9B5;BA32</code></td><td><code>00;01;02</code></td><td>Write 00 to B932, 01 to B9B5, 02 to BA32 (per-write)</td></tr>
-<tr><td><code>FA78;FF06</code></td><td><code>01;04</code></td><td>Write 01 to FA78, 04 to FF06 (per-write, two different values)</td></tr>
-</table>
-
-<h3>Examples</h3>
-
-<h4>Kill All Enemies (broadcast value)</h4>
-<pre><code>B932;B9B5;BA32;BB32;BBB2;BAB2;BCB2|00|Kill All Enemies|8|set|1|0|0|Kill All|1||10</code></pre>
-<p>Seven enemy health addresses, all set to <code>00</code>. The single <code>00</code> in the val field broadcasts to all seven writes. Hotkey 10 = Ctrl+Num1.</p>
-
-<h4>Clear Stage (per-write values)</h4>
-<pre><code>FA78;FF06|01;04|Clear Stage|8|set|1|0|0|Clear Stage|1||11</code></pre>
-<p>Two addresses with two different values: <code>FA78</code> &larr; <code>01</code> (boss complete flag) and <code>FF06</code> &larr; <code>04</code> (level complete flag). Hotkey 11 = Ctrl+Num2.</p>
-
-<div class="note-yellow">
-<strong>Limit:</strong> A single cheat can have at most 16 writes (16 addresses). If you need more, split into multiple cheat entries. The total cheat list can hold up to 256 entries.
-</div>
-
-<!-- ================================================================ -->
-<h2 id="hotkeys">11. Hotkeys</h2>
-<p>Quick Cheat supports 27 hotkey slots, all based on the numeric keypad (Numpad). The <code>hotkey</code> field (field 12) encodes which slot a cheat is assigned to. When you press the corresponding key combination during gameplay, the cheat is applied as a one-shot (regardless of its <code>freeze</code> setting).</p>
-
-<table>
-<tr><th>ID</th><th>Key Combination</th><th>Notes</th></tr>
-<tr><td><code>0</code></td><td>(none)</td><td>No hotkey &mdash; the cheat is only applied via the Apply button or freeze loop</td></tr>
-<tr><td><code>1</code>&ndash;<code>9</code></td><td>Numpad 1 &ndash; Numpad 9</td><td>Single-key, no modifier</td></tr>
-<tr><td><code>10</code>&ndash;<code>18</code></td><td>Ctrl + Numpad 1 &ndash; Ctrl + Numpad 9</td><td>Two-combo</td></tr>
-<tr><td><code>19</code>&ndash;<code>27</code></td><td>Alt + Numpad 1 &ndash; Alt + Numpad 9</td><td>Two-combo</td></tr>
-</table>
-
-<h3>Special Hotkeys (Not Cheat Slots)</h3>
-<p>These are built-in and cannot be assigned to cheats:</p>
-<table>
-<tr><th>Key</th><th>Action</th></tr>
-<tr><td>Numpad 0</td><td>Open / close the Quick Cheat popup</td></tr>
-<tr><td>Ctrl + Numpad 0</td><td>Apply all enabled cheats (one-shot)</td></tr>
-<tr><td>Alt + Numpad 0</td><td>Disable all cheats</td></tr>
-</table>
-
-<div class="note">
-<strong>Hotkey behavior:</strong> When a hotkey fires, Quick Cheat applies <em>all enabled cheats</em> that share that hotkey ID, as a one-shot. This means you can group several cheats under one hotkey to fire them together (e.g. "HP +10" and "Special +1" both on Num3). The <code>freeze</code> flag is irrelevant for hotkey application &mdash; freeze only affects the per-frame loop.
-</div>
-
-<h3>Hotkey Examples</h3>
-<pre><code># Num1: HP +10 (P1)
-B832|0A|HP +10 (P1) [Num1]|8|inc|1|0|0|Hotkeys|1||1
-
-# Num2: HP -10 (P1)
-B832|0A|HP -10 (P1) [Num2]|8|dec|1|0|0|Hotkeys|1||2
-
-# Ctrl+Num1: Kill All Enemies (7 addresses at once)
-B932;B9B5;BA32;BB32;BBB2;BAB2;BCB2|00|Kill All Enemies [Ctrl+1]|8|set|1|0|0|Kill All|1||10</code></pre>
-
-<!-- ================================================================ -->
-<h2 id="escaping">12. Escape Rules</h2>
-<p>Because the pipe <code>|</code> separates fields and newlines separate cheat entries, special characters in text fields (<code>desc</code>, <code>group</code>, <code>code</code>, <code>notes</code>) must be escaped. Quick Cheat uses backslash escapes:</p>
-
-<table>
-<tr><th>Character</th><th>Escape Sequence</th><th>Why</th></tr>
-<tr><td><code>|</code> (pipe)</td><td><code>\p</code></td><td>Pipe is the field separator &mdash; an unescaped pipe would split the field</td></tr>
-<tr><td><code>\n</code> (newline)</td><td><code>\n</code></td><td>Newline would start a new cheat line</td></tr>
-<tr><td><code>\r</code> (carriage return)</td><td><code>\r</code></td><td>Part of Windows line endings</td></tr>
-<tr><td><code>\</code> (backslash)</td><td><code>\\</code></td><td>Backslash itself must be escaped so <code>\p</code> etc. are unambiguous</td></tr>
-</table>
-
-<div class="note-yellow">
-<strong>Example:</strong> A description like <code>Health | Ammo (P1\nP2)</code> would be stored as:
-<pre><code>Health \p Ammo (P1\nP2)</code></pre>
-When Quick Cheat reads this back, it converts <code>\p</code> back to <code>|</code> and <code>\n</code> back to a newline.
-</div>
-
-<div class="note">
-<strong>When to worry about escaping:</strong> Most cheat descriptions are plain text ("Infinite Health", "Stage 3") and need no escaping. You only need it if your description contains a pipe, newline, or backslash. Game Genie / GameShark codes never contain these characters, so the <code>code</code> field usually needs no escaping either.
-</div>
-
-<!-- ================================================================ -->
-<h2 id="timing-notes">13. Timing &amp; Notes (v2.8)</h2>
-<p>Version 2.8 added two optional fields that let you fine-tune cheat behavior and document your cheats.</p>
-
-<h3>Timing Interval (field 13)</h3>
-<p>The <code>timing</code> field controls how often a <strong>freeze</strong> cheat re-applies its value. By default (0 or 1), a freeze cheat writes every frame &mdash; 60 times per second on most cores. Setting <code>timing</code> to a higher value slows this down:</p>
-
-<table>
-<tr><th>timing value</th><th>Behavior</th></tr>
-<tr><td><code>0</code> or <code>1</code></td><td>Apply every frame (default &mdash; standard freeze)</td></tr>
-<tr><td><code>2</code></td><td>Apply every 2nd frame (30 times/sec)</td></tr>
-<tr><td><code>6</code></td><td>Apply every 6th frame (10 times/sec)</td></tr>
-<tr><td><code>60</code></td><td>Apply once per second</td></tr>
-</table>
-
-<div class="note-yellow">
-<strong>Use case:</strong> Some games detect "too-fast" writes and flag them as cheating, or the value flickers annoyingly when written every frame. A timing of 2&ndash;6 often fixes this while still keeping the value locked. This field only affects freeze cheats &mdash; one-shot and hotkey cheats ignore it.
-</div>
-
-<h3>Per-Cheat Notes (field 14)</h3>
-<p>The <code>notes</code> field is a free-form text field for your own reference. It is not displayed in the cheat list, but it is visible in the edit dialog and preserved across saves. Use it to record where you found the address, what the value means, or any caveats:</p>
-
-<pre><code>B832|50|Infinite HP (P1)|8|set|1|1|0|Player 1|1||0|0|Found on RetroAchievements. 50 hex = 80 decimal.|0|0|0</code></pre>
-
-<!-- ================================================================ -->
-<h2 id="range-lock">14. Value Range Lock (v3.0)</h2>
-<p>Version 3.0 introduced <strong>Value Range Lock</strong>, a boundary guard for freeze cheats. On every freeze tick, Quick Cheat first <em>reads</em> the current value at the cheat's first write address: if it is outside <code>[range_min, range_max]</code>, the boundary value is written immediately and the cheat's normal writes are skipped for that tick. If the value is <em>inside</em> the range, the cheat's normal writes still execute as usual &mdash; <code>val</code> is not ignored.</p>
-
-<h3>The Three Fields</h3>
-<table>
-<tr><th>#</th><th>Field</th><th>Type</th><th>Description</th></tr>
-<tr><td>15</td><td><code>range_lock</code></td><td>0/1</td><td>1 = enable range lock. Only meaningful on freeze cheats (<code>enabled=1, freeze=1</code>) &mdash; one-shot Apply and hotkey presses bypass it.</td></tr>
-<tr><td>16</td><td><code>range_min</code></td><td>hex</td><td>Minimum allowed value. If current &lt; min, write min.</td></tr>
-<tr><td>17</td><td><code>range_max</code></td><td>hex</td><td>Maximum allowed value. If current &gt; max, write max.</td></tr>
-</table>
-
-<h3>How It Works (per freeze tick)</h3>
+<h2 id="manual">23. Writing Config Files by Hand</h2>
 <ol>
-<li>Read the current value at <code>write[0]</code>'s address (only the first write of the cheat is range-checked).</li>
-<li>If current &lt; <code>range_min</code>: write <code>range_min</code>, skip the normal writes this tick.</li>
-<li>If current &gt; <code>range_max</code>: write <code>range_max</code>, skip the normal writes this tick.</li>
-<li>If current is within range (or the read fails): the cheat's normal <code>set</code>/<code>inc</code>/<code>dec</code> writes still run &mdash; <code>val</code> is applied as usual.</li>
+<li>Open a plain-text editor (Notepad, VS Code) &mdash; save as UTF-8 without BOM.</li>
+<li>Create the folder <code>quick_cheat_profiles/&lt;core&gt;/</code> if needed and name the file exactly like the ROM (extension replaced by <code>.cfg</code>).</li>
+<li>Start with <code>[cheats]</code> on its own line (cheat lines before it are skipped!), then one line per cheat.</li>
+<li>Addresses and values in <strong>hex without 0x</strong>; sizes are bit counts (8/16/32); types are the keyword tokens (<code>set</code>, <code>inc</code>...).</li>
+<li>Close RA Cheat before saving &mdash; it auto-saves and would overwrite your edits otherwise.</li>
 </ol>
 
-<h3>Example 1: HP regen &mdash; +1 per frame, capped at 99</h3>
-<pre><code>B832|01|HP Regen up to 99 (P1)|8|inc|1|1|0|Player 1|1||0|0||1|0|63</code></pre>
-<p>While HP is within [0, 99] (hex <code>63</code>), the cheat adds 1 per frame (the normal <code>inc</code> write). Once HP would exceed 99, the upper boundary wins and the value is pinned at 99. Damage still works &mdash; the regen simply pushes the value back up afterwards.</p>
-
-<h3>Example 2: HP drain &mdash; -1 per frame, floored at 50</h3>
-<pre><code>B832|01|HP Drain to 50 min (P1)|8|dec|1|1|0|Player 1|1||0|0||1|32|63</code></pre>
-<p>The value drains by 1 per frame but can never fall below hex <code>32</code> (decimal 50): as soon as it would go lower, the clamp writes <code>32</code> instead.</p>
-
-<div class="note-red">
-<strong>Do not pair range lock with <code>set</code>.</strong> A <code>set</code> cheat already pins the value to <code>val</code> on every tick, so the range adds nothing while <code>val</code> is inside [min, max] &mdash; and if <code>val</code> is <em>outside</em> the range the value oscillates every frame (set writes val, the clamp drags it back to the boundary, set writes val again&hellip;). The old "HP Lock 50-99 with set + val=00" recipe from earlier revisions of this guide was exactly this bug: use <code>inc</code>/<code>dec</code> patterns above instead.
-</div>
-
-<div class="note-yellow">
-<strong>Range lock vs freeze:</strong> A normal freeze (<code>freeze=1, range_lock=0</code>) pins the value to exactly <code>val</code> every frame &mdash; the game cannot change it at all. A range lock (<code>freeze=1, range_lock=1</code>) adds hard boundaries on top of the cheat's own writes: out-of-range values are instantly clamped to the boundary, and in-range values still receive the cheat's normal <code>set</code>/<code>inc</code>/<code>dec</code> writes. Use plain freeze when you want a fixed value; use range lock with <code>inc</code>/<code>dec</code> when you want "regen up to a cap" or "drain down to a floor" behavior.
-</div>
-
-<div class="note">
-<strong>Multi-write note:</strong> Range lock only reads and clamps the cheat's <em>first</em> write (<code>write[0]</code>). Any additional writes in the same cheat apply normally on every tick.
-</div>
-
-<!-- ================================================================ -->
-<h2 id="handlers">15. Handlers: RETRO vs EMU</h2>
-<p>The <code>handler</code> field (field 10) selects how the cheat is applied. There are two handlers:</p>
-
-<h3>RETRO Handler (handler = 1)</h3>
-<p>This is the default and most common. Quick Cheat directly reads and writes the core's memory using the <code>addr</code>, <code>val</code>, <code>size</code>, and <code>bigendian</code> fields. This is what you will use for 99% of cheats created from RetroAchievements code notes. The <code>code</code> field is ignored (leave it empty).</p>
-
-<h3>EMU Handler (handler = 0)</h3>
-<p>This handler is for emulator-specific cheat code strings &mdash; Game Genie (Genesis), GameShark (GB/GBA/N64), Pro Action Replay (SNES), etc. The code goes in the <code>code</code> field as a string. The <code>addr</code>, <code>val</code>, <code>size</code>, and <code>bigendian</code> fields are ignored for EMU cheats &mdash; you still need to include them as placeholders, but their values don't matter.</p>
-
-<p>Behind the scenes, EMU cheats are registered in RetroArch's own cheat manager and applied via the core's cheat code processor. This is the only way Game Genie / GameShark codes work, because they use emulator-specific encoding that the core must decode.</p>
-
-<h3>EMU Cheat Example (Game Genie for Genesis)</h3>
-<pre><code>0000|00|Infinite Fighters (Game Genie)|8|set|1|0|0|Game Genie|0|AT4A-AA48|0</code></pre>
-<p>Note: <code>handler=0</code>, the code <code>AT4A-AA48</code> is in the <code>code</code> field, and the addr/val/size fields are placeholders. Multi-code Game Genie cheats use <code>+</code> to join codes:</p>
-<pre><code>0000|00|Start Timer at 99|8|set|1|0|0|Game Genie|0|RGMA-C6VC+XGMA-DA3E|0</code></pre>
-
-<div class="note-red">
-<strong>Important:</strong> Not all cores support EMU cheat codes. If your Game Genie code doesn't work, check the core's documentation. Genesis Plus GX supports Game Genie codes for Genesis games. For other systems, you may need to find the equivalent RETRO cheat (using code notes) instead.
-</div>
-
-<!-- ================================================================ -->
-<h2 id="example">16. Complete Example: Streets of Rage</h2>
-<p>Here is a complete <code>.cfg</code> file for Streets of Rage (Genesis/Mega Drive), demonstrating all the major features: freeze cheats, one-shot cheats, hotkeys, multi-write cheats, 16-bit big-endian cheats, and Game Genie codes. Genesis is big-endian, so <code>bigendian=1</code> for 16-bit writes.</p>
-
-<pre><code># RA-BP Quick Cheat Config v2.2
-# Game: Streets of Rage (Genesis/Mega Drive)
-# Source: RetroAchievements code notes + Game Genie database
-
-[settings]
-notify=1
-auto_apply=0
-x=100
-y=100
-w=900
-h=600
-
-[cheats]
-# Fields: addr|val|desc|size|type|enabled|freeze|bigendian|group|handler|code|hotkey|timing|notes|range_lock|range_min|range_max
-
-# ===== Player 1: Infinite Resources (frozen) =====
-B832|50|Infinite HP (P1)|8|set|1|1|0|Player 1|1||0|0||0|0|0
-FF21|09|Infinite Lives (P1)|8|set|1|1|0|Player 1|1||0|0||0|0|0
-FF20|09|Infinite Specials (P1)|8|set|1|1|0|Player 1|1||0|0||0|0|0
-
-# ===== Player 1: Character Select (one-shot; set then load game) =====
-FF1F|00|P1 Character: Axel|8|set|0|0|0|Player 1|1||0|0||0|0|0
-FF1F|01|P1 Character: Adam|8|set|0|0|0|Player 1|1||0|0||0|0|0
-FF1F|02|P1 Character: Blaze|8|set|0|0|0|Player 1|1||0|0||0|0|0
-
-# ===== Player 2: Infinite Resources (frozen) =====
-B8B2|50|Infinite HP (P2)|8|set|0|1|0|Player 2|1||0|0||0|0|0
-
-# ===== Enemies: Instant Kill (freeze HP at 0) =====
-B932|00|Kill Enemy 1 (Boss slot)|8|set|0|1|0|Enemies|1||0|0||0|0|0
-B9B5|00|Kill Enemy 2|8|set|0|1|0|Enemies|1||0|0||0|0|0
-BA32|00|Kill Enemy 3|8|set|0|1|0|Enemies|1||0|0||0|0|0
-BAB2|00|Kill Enemy 6|8|set|0|1|0|Enemies|1||0|0||0|0|0
-BB32|00|Kill Enemy 4|8|set|0|1|0|Enemies|1||0|0||0|0|0
-BBB2|00|Kill Enemy 5|8|set|0|1|0|Enemies|1||0|0||0|0|0
-BCB2|00|Kill Enemy 8|8|set|0|1|0|Enemies|1||0|0||0|0|0
-
-# ===== Time =====
-FB01|63|Time Freeze (99 secs)|8|set|0|1|0|Time|1||0|0||0|0|0
-FB00|0063|Stage Time Lock (16-bit, 99 secs)|16|set|0|1|1|Time|1||0|0||0|0|0
-
-# ===== Difficulty (one-shot) =====
-FFC6|00|Difficulty: Easy|8|set|0|0|0|Difficulty|1||0|0||0|0|0
-FFC6|01|Difficulty: Normal|8|set|0|0|0|Difficulty|1||0|0||0|0|0
-FFC6|02|Difficulty: Hard|8|set|0|0|0|Difficulty|1||0|0||0|0|0
-FFC6|03|Difficulty: Hardest|8|set|0|0|0|Difficulty|1||0|0||0|0|0
-
-# ===== Stage Select (one-shot) =====
-FF02|00|Stage 1|8|set|0|0|0|Stage Select|1||0|0||0|0|0
-FF02|01|Stage 2|8|set|0|0|0|Stage Select|1||0|0||0|0|0
-FF02|02|Stage 3|8|set|0|0|0|Stage Select|1||0|0||0|0|0
-FF02|03|Stage 4|8|set|0|0|0|Stage Select|1||0|0||0|0|0
-FF02|04|Stage 5|8|set|0|0|0|Stage Select|1||0|0||0|0|0
-FF02|05|Stage 6|8|set|0|0|0|Stage Select|1||0|0||0|0|0
-FF02|06|Stage 7|8|set|0|0|0|Stage Select|1||0|0||0|0|0
-FF02|07|Stage 8 (Final - Mr. X)|8|set|0|0|0|Stage Select|1||0|0||0|0|0
-
-# ===== Score Boost (16-bit big-endian, one-shot increments) =====
-FF08|0100|Score +10000 (high 16 bits)|16|inc|0|0|1|Score|1||0|0||0|0|0
-FF0A|0100|Score +256 (low 16 bits)|16|inc|0|0|1|Score|1||0|0||0|0|0
-
-# ===== Police Special (16-bit big-endian, one-shot trigger) =====
-F1F6|4817|Call Police Special|16|set|0|0|1|Special|1||0|0||0|0|0
-
-# ===== Cheat Menu Unlock & Mr. X Defeat (one-shot) =====
-FA7A|01|Unlock Hidden Cheat Menu|8|set|0|0|0|System|1||0|0||0|0|0
-BB31|0E|Defeat Mr. X (final boss)|8|set|0|0|0|Special|1||0|0||0|0|0
-
-# ===== In-Game Hotkeys (Num1-Num9) =====
-B832|0A|HP +10 (P1) [Num1]|8|inc|1|0|0|Hotkeys|1||1|0||0|0|0
-B832|0A|HP -10 (P1) [Num2]|8|dec|1|0|0|Hotkeys|1||2|0||0|0|0
-FF20|01|Special +1 (P1) [Num3]|8|inc|1|0|0|Hotkeys|1||3|0||0|0|0
-FF21|01|Life +1 (P1) [Num4]|8|inc|1|0|0|Hotkeys|1||4|0||0|0|0
-FF08|0064|Score +10000 [Num5]|16|inc|1|0|1|Hotkeys|1||5|0||0|0|0
-F1F6|4817|Call Police [Num6]|16|set|1|0|1|Hotkeys|1||6|0||0|0|0
-FB01|63|Reset Stage Time to 99 [Num7]|8|set|1|0|0|Hotkeys|1||7|0||0|0|0
-B8B2|0A|HP +10 (P2) [Num8]|8|inc|1|0|0|Hotkeys|1||8|0||0|0|0
-B8B2|0A|HP -10 (P2) [Num9]|8|dec|1|0|0|Hotkeys|1||9|0||0|0|0
-
-# ===== Multi-Write Cheats (Ctrl+Num hotkeys) =====
-# Kill All Enemies: ONE cheat writes 7 enemy HP addresses to 0 simultaneously.
-B932;B9B5;BA32;BB32;BBB2;BAB2;BCB2|00|Kill All Enemies [Ctrl+1]|8|set|1|0|0|Kill All|1||10|0||0|0|0
-
-# Clear Stage: ONE cheat sets Boss Complete + Level Complete simultaneously.
-FA78;FF06|01;04|Clear Stage [Ctrl+2]|8|set|1|0|0|Clear Stage|1||11|0||0|0|0
-
-# ===== Value Range Lock (v3.0) =====
-# HP regen: +1 per frame while in [0,99], pinned at 99 (0x63) at the cap.
-B832|01|HP Regen up to 99 (P1)|8|inc|0|1|0|Player 1|1||0|0||1|0|63
-
-# ===== Game Genie Codes (EMU handler) =====
-0000|00|Infinite Fighters (Game Genie)|8|set|0|0|0|Game Genie|0|AT4A-AA48|0|0||0|0|0
-0000|00|Infinite Specials (Game Genie)|8|set|0|0|0|Game Genie|0|RFAA-A6VR|0|0||0|0|0
-0000|00|Infinite Life Gauge (Game Genie)|8|set|0|0|0|Game Genie|0|AJ4T-AA34|0|0||0|0|0</code></pre>
-
-<!-- ================================================================ -->
-<h2 id="bookmarks">17. Bookmarks File (.bookmarks)</h2>
-<p>Alongside each <code>.cfg</code> file, Quick Cheat may create a <code>.bookmarks</code> sidecar file. This file stores saved memory addresses for quick access in the Memory Tools tab. The format is simple:</p>
-
-<pre><code># Quick Cheat Bookmarks
-B832|3|Player 1 Health
-FF21|3|Player 1 Lives
-FF08|4|Score High
-FB00|4|Stage Time</code></pre>
-
-<div class="note-red">
-<strong>Bookmark size uses the RetroArch code, NOT the bit count.</strong> In the <code>.bookmarks</code> file the size column is <code>3</code> = 8-bit, <code>4</code> = 16-bit, <code>5</code> = 32-bit &mdash; the same codes as <code>memory_search_size</code> in <code>.cht</code> files. This is <em>different</em> from cheat lines in the <code>.cfg</code> file itself, which use the bit count (8/16/32). A size of <code>16</code> in a bookmark line is invalid and will not behave as "16-bit".
-</div>
-
-<h3>Bookmark Fields</h3>
+<h3>Hex to Decimal Conversion (cheat sheets)</h3>
 <table>
-<tr><th>#</th><th>Field</th><th>Type</th><th>Description</th></tr>
-<tr><td>1</td><td><code>address</code></td><td>hex</td><td>Memory address (hex, no <code>0x</code> prefix)</td></tr>
-<tr><td>2</td><td><code>size</code></td><td>int</td><td>RetroArch size code: <strong>3 = 8-bit, 4 = 16-bit, 5 = 32-bit</strong> (NOT the 8/16/32 bit count used in cheat lines)</td></tr>
-<tr><td>3</td><td><code>label</code></td><td>string</td><td>Free-form label for the bookmark (not escaped &mdash; no pipes allowed)</td></tr>
+<tr><th>Decimal</th><th>Hex</th><th>Decimal</th><th>Hex</th></tr>
+<tr><td>3</td><td>03</td><td>50</td><td>32</td></tr>
+<tr><td>5</td><td>05</td><td>99</td><td>63</td></tr>
+<tr><td>9</td><td>09</td><td>100</td><td>64</td></tr>
+<tr><td>10</td><td>0A</td><td>255</td><td>FF</td></tr>
+<tr><td>16</td><td>10</td><td>1000</td><td>3E8</td></tr>
+<tr><td>20</td><td>14</td><td>10000</td><td>2710</td></tr>
 </table>
 
-<div class="note">
-<strong>Automatic management:</strong> Bookmarks are saved and loaded automatically with the config file. You normally create them via the Bookmark button in the Memory Tools tab. The maximum is 32 bookmarks per game. You can edit the <code>.bookmarks</code> file by hand, but close the Quick Cheat popup first to avoid your changes being overwritten.
-</div>
-
 <!-- ================================================================ -->
-<h2 id="manual">18. Writing .cfg Files by Hand</h2>
-<p>You can create a <code>.cfg</code> file from scratch using any text editor. Here's the step-by-step process:</p>
+<h2 id="troubleshooting">24. Troubleshooting</h2>
 
-<ol>
-<li><strong>Close the Quick Cheat popup</strong> if it is open &mdash; Quick Cheat auto-saves on close and would overwrite your edits.</li>
-<li>Find the correct path: <code>&lt;RetroArch_dir&gt;/quick_cheat_profiles/&lt;core_name&gt;/&lt;rom_name&gt;.cfg</code>. Create the directories if they don't exist.</li>
-<li>Create a new text file with the <code>.cfg</code> extension at that path.</li>
-<li>Add a header comment: <code># RA-BP Quick Cheat Config v2.2</code></li>
-<li>(Optional) Add a <code>[settings]</code> section with window preferences. You can skip this entirely if you want.</li>
-<li>Add a <code>[cheats]</code> section header.</li>
-<li>Add one line per cheat, using the 17-field pipe-separated format.</li>
-<li>Save the file as plain text (UTF-8 encoding, no BOM).</li>
-<li>Open the Quick Cheat popup (Numpad 0) &mdash; your cheats will load automatically.</li>
-</ol>
-
-<h3>Minimal Template (Copy &amp; Modify)</h3>
-<pre><code># RA-BP Quick Cheat Config v2.2
-
-[cheats]
-# addr|val|desc|size|type|enabled|freeze|bigendian|group|handler|code|hotkey
-B832|50|Infinite HP|8|set|1|1|0|Player 1|1||0
-FF21|09|Infinite Lives|8|set|1|1|0|Player 1|1||0</code></pre>
-
-<div class="note-yellow">
-<strong>Only 12 fields are required.</strong> Fields 13&ndash;17 (timing, notes, range_lock, range_min, range_max) are optional. If you omit them, Quick Cheat uses defaults (timing=0, empty notes, range_lock=0). The minimal format is just the first 12 fields. Old v2.0 cheat files with 12 fields still work perfectly in v3.6.
-</div>
-
-<h3>Hex Address Cheat Sheet</h3>
-<p>Remember: in <code>.cfg</code> files, addresses and values are <strong>hexadecimal without the 0x prefix</strong>. Here are common conversions for Streets of Rage (Genesis):</p>
-<table>
-<tr><th>Address (hex)</th><th>What it is</th><th>Typical value (hex)</th></tr>
-<tr><td><code>B832</code></td><td>Player 1 Health</td><td><code>50</code> (decimal 80) or <code>63</code> (decimal 99)</td></tr>
-<tr><td><code>FF21</code></td><td>Player 1 Lives</td><td><code>09</code></td></tr>
-<tr><td><code>FF20</code></td><td>Player 1 Specials</td><td><code>09</code></td></tr>
-<tr><td><code>FF02</code></td><td>Stage ID (0&ndash;7)</td><td><code>00</code>&ndash;<code>07</code></td></tr>
-<tr><td><code>FFC6</code></td><td>Difficulty (0&ndash;3)</td><td><code>00</code>&ndash;<code>03</code></td></tr>
-<tr><td><code>FB01</code></td><td>Time Remaining (secs)</td><td><code>63</code> (decimal 99)</td></tr>
-<tr><td><code>B932</code></td><td>Enemy 1 Health (boss)</td><td><code>00</code> (kill)</td></tr>
-<tr><td><code>BB31</code></td><td>Mr. X Defeat flag</td><td><code>0E</code> (defeated)</td></tr>
-</table>
-
-<h3>Converting from RetroArch .cht to .cfg</h3>
-<p>If you have a <code>.cht</code> file and want to convert it to <code>.cfg</code> format:</p>
-<ol>
-<li>Take the decimal <code>address</code> from the <code>.cht</code> and convert to hex (e.g. <code>47154</code> &rarr; <code>B832</code>).</li>
-<li>Take the decimal <code>value</code> and convert to hex (e.g. <code>99</code> &rarr; <code>63</code>).</li>
-<li>Convert the <code>memory_search_size</code> code to a bit count: 3&rarr;8, 4&rarr;16, 5&rarr;32. Codes 0&ndash;2 (1/2/4-bit) have no <code>.cfg</code> equivalent &mdash; Quick Cheat treats anything other than 16/32 as 8-bit, so convert them to 8 and verify the cheat still makes sense.</li>
-<li>Convert the <code>cheat_type</code> code to a keyword: 1&rarr;set, 2&rarr;inc, 3&rarr;dec, 4&rarr;eq, 5&rarr;neq, 6&rarr;lt, 7&rarr;gt.</li>
-<li>Convert <code>handler</code> (same numbering: 0=EMU, 1=RETRO).</li>
-<li>Convert <code>big_endian</code> true/false to 1/0.</li>
-<li>Convert <code>enable</code> true/false to 1/0.</li>
-<li>Map <code>freeze</code> to 1 if the cheat is a "Set Value" that should re-apply every frame (in <code>.cht</code>, all enabled cheats freeze; in <code>.cfg</code> you choose). Quick Cheat's own <strong>Import .cht</strong> button does exactly this: enabled, non-conditional RETRO cheats are imported with <code>freeze=1</code>.</li>
-<li>Assemble: <code>addr|val|desc|size|type|enabled|freeze|bigendian|group|handler|code|hotkey</code></li>
-</ol>
-
-<div class="note">
-<strong>Tip:</strong> Quick Cheat has built-in <strong>Import .cht</strong> and <strong>Export .cht</strong> buttons that do this conversion automatically. Use them if you have a large <code>.cht</code> file &mdash; no need to convert by hand.
-</div>
-
-<!-- ================================================================ -->
-<h2 id="troubleshooting">19. Troubleshooting</h2>
-
-<h3>My .cfg file doesn't load</h3>
+<h3>Tool cannot connect / "not connected"</h3>
 <ul>
-<li>Make sure the file is at the correct path: <code>&lt;RetroArch_dir&gt;/quick_cheat_profiles/&lt;core_name&gt;/&lt;rom_name&gt;.cfg</code></li>
-<li>Check that the core name and ROM name match exactly (including capitalization and spacing)</li>
-<li>Close and reopen the Quick Cheat popup &mdash; it only loads the file on open</li>
-<li>Check <code>quick_cheat_log.txt</code> in the RetroArch directory for error messages</li>
-<li>Make sure the file is plain text (UTF-8), not a Word document or rich text</li>
+<li><code>network_cmd_enable</code> is off in <code>retroarch.cfg</code> &mdash; the Numpad-0 launcher offers to flip it (no restart needed), or add the lines manually:
+<pre><code>network_cmd_enable = "true"
+network_cmd_port = "55355"</code></pre></li>
+<li>Wrong host: for RetroArch on another device (Android), start with <code>racheat.pyw --host &lt;ip&gt;</code> once &mdash; the address is remembered.</li>
+<li>Windows Firewall blocking Python &mdash; allow <code>pythonw.exe</code> on private networks.</li>
 </ul>
 
-<h3>Cheat doesn't work</h3>
+<h3>Cheats in my .cfg are not loading</h3>
 <ul>
-<li>Verify the address is correct &mdash; in <code>.cfg</code> files, addresses are <strong>hex</strong> (e.g. <code>B832</code>), not decimal</li>
-<li>Check the <code>enabled</code> field is <code>1</code></li>
-<li>For freeze cheats, check <code>freeze=1</code></li>
-<li>For one-shot cheats, press <strong>Apply</strong> or the assigned hotkey &mdash; they don't apply automatically</li>
-<li>Try toggling <code>bigendian</code> (especially for 16-bit/32-bit cheats on Genesis)</li>
-<li>Make sure <code>handler=1</code> for memory-write cheats (RETRO)</li>
-<li>Check that <code>size</code> matches the data (8 for most values, 16 for scores, 32 for large)</li>
+<li>Missing <code>[cheats]</code> header before the cheat lines (lines before it are skipped).</li>
+<li>Wrong folder or file name &mdash; the core folder must be the system id and the file name must match the ROM name exactly (extension swapped for <code>.cfg</code>).</li>
+<li>All-EMU file: since v1.9 the Cheat Table skips EMU lines on load &mdash; the log notes them; use the RetroArch Cheats tab.</li>
+<li>Field count below 12, or the address field is not valid hex.</li>
 </ul>
 
-<h3>Game crashes when cheat is enabled</h3>
+<h3>A cheat does nothing</h3>
 <ul>
-<li>The address might be wrong &mdash; writing to the wrong address can crash the game</li>
-<li>Try a smaller value</li>
-<li>Disable other cheats to check for conflicts</li>
-<li>If using a freeze cheat on an address the game also writes to, try <code>timing=2</code> or higher to reduce write frequency</li>
+<li>Checkbox off in the On column, or "Apply All" not pressed after editing (edits reach the engine instantly; Apply runs the one-shot writes).</li>
+<li>Freeze cheat with <code>timing</code> so high it almost never fires.</li>
+<li>EMU/code cheat sitting in the Cheat Table (legacy line) &mdash; move it to a <code>.cht</code> file.</li>
+<li>Wrong domain: an address found in the raw memory map (<code>map</code>) will not read in the RetroAchievements space (<code>rc</code>) and vice versa.</li>
+<li>Wrong endianness for 16/32-bit values (Genesis = big-endian).</li>
 </ul>
 
-<h3>Game Genie / GameShark code doesn't work</h3>
+<h3>Value flickers / game misbehaves while frozen</h3>
 <ul>
-<li>Make sure <code>handler=0</code> (EMU) and the code is in the <code>code</code> field</li>
-<li>Not all cores support EMU codes &mdash; check the core's documentation</li>
-<li>Make sure the code is entered correctly (Game Genie: <code>XXXX-XXXX</code> with a dash)</li>
-<li>For multi-code cheats, join codes with <code>+</code>: <code>RGMA-C6VC+XGMA-DA3E</code></li>
-<li>Try the equivalent RETRO cheat (using code notes) instead</li>
+<li>Raise <code>timing</code> (apply every N ticks) or lower the global freeze rate (25&ndash;100&nbsp;Hz is usually plenty).</li>
+<li>Switch the cheat's freeze mode from <code>fix</code> to a guard (<code>min</code>/<code>max</code>/<code>range</code>) so the game can breathe inside the bounds.</li>
 </ul>
 
-<h3>Multi-write cheat only writes to one address</h3>
+<h3>Multi-file .cht groups, hotkeys or enable flags were forgotten</h3>
 <ul>
-<li>Check that addresses are separated by semicolons <code>;</code> with no spaces: <code>B932;B9B5;BA32</code></li>
-<li>If using per-write values, make sure the count matches (or use a single value to broadcast)</li>
-<li>Maximum is 16 writes per cheat &mdash; split into multiple cheats if you need more</li>
-</ul>
-
-<h3>Hotkey doesn't fire</h3>
-<ul>
-<li>Make sure <code>enabled=1</code> &mdash; disabled cheats don't fire on hotkey</li>
-<li>Check the <code>hotkey</code> field is in range 1&ndash;27</li>
-<li>Make sure Num Lock is on (Numpad keys may not register otherwise)</li>
-<li>Check that no two cheats share the same hotkey unless you want them to fire together</li>
-<li>Numpad 0, Ctrl+Num0, and Alt+Num0 are reserved &mdash; don't use hotkey 0 expecting them to fire a cheat</li>
-</ul>
-
-<h3>Value range lock isn't clamping</h3>
-<ul>
-<li>Check <code>range_lock=1</code> and <code>freeze=1</code> (range lock only works for freeze cheats)</li>
-<li>Make sure <code>range_min</code> and <code>range_max</code> are in <strong>hex</strong> (e.g. <code>32</code> for decimal 50)</li>
-<li>Verify <code>range_min</code> &le; <code>range_max</code></li>
-<li>Range lock reads the <em>first</em> write's address &mdash; for multi-write cheats, only write[0] is range-locked</li>
-<li>Remember that while the value is <em>inside</em> [min, max] the cheat's normal set/inc/dec writes still run &mdash; that is expected behavior, not a bug. Range lock only replaces the write when the value is outside the boundaries</li>
-</ul>
-
-<h3>Window position or size is wrong</h3>
-<ul>
-<li>Edit the <code>[settings]</code> section: <code>x</code>, <code>y</code>, <code>w</code>, <code>h</code></li>
-<li>Window size is clamped both ways: minimum <strong>1020&times;660</strong>, maximum 65% screen width / 75% screen height &mdash; a hand-written <code>w=900</code> is bumped <em>up</em> to 1020, and oversized values are clamped down</li>
-<li>Delete the <code>[settings]</code> section entirely to reset to defaults</li>
+<li>They live in <code>&lt;rom&gt;.racheats.json</code> next to the profile &mdash; check the file exists and is valid JSON; a broken file is ignored (defaults apply).</li>
 </ul>
 
 <hr style="border: 0; border-top: 1px solid var(--border); margin: 32px 0;">
 
 <p style="text-align: center; color: var(--text-dim);">
-  RA-BP Quick Cheat &mdash; <a href="index.html">Back to Editor</a> &mdash; <a href="guide.html">.cht Guide (RetroArch)</a><br>
-  This guide covers the Quick Cheat <code>.cfg</code> format as of v3.6.0 (verified against the RA-BP v9.3 bugfix round).<br>
-  The <code>[settings]</code> section is optional &mdash; a <code>.cfg</code> file with only <code>[cheats]</code> is perfectly valid.
+  RA Cheat (RA-BP) &mdash; <a href="index.html">Back to Editor</a> &mdash; <a href="guide.html">.cht Guide (RetroArch)</a><br>
+  This guide covers the RA Cheat system as of <strong>v1.9.1</strong> (external trainer, two cheat types, 20-field <code>.cfg</code>).<br>
+  Old Quick Cheat profiles load unchanged; EMU cheats live in the RetroArch Cheats tab since v1.9.
 </p>
 
 </body>
